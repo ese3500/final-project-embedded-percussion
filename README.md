@@ -74,6 +74,16 @@ This project will require many buttons (~25) and LEDs (16). The ATmega does not 
 What is your metric for evaluating how well your product/solution solves the problem? Think critically on this section. Having a boolean metric such as “it works” is not very useful. This is akin to making a speaker and if it emits sound, albeit however terrible and ear wrenching, declare this a success.
 It is recommended that your project be something that you can take pride in. Oftentimes in interviews, you will be asked to talk about projects you have worked on.
 
+Our metric will be made up of the 2 halves below:
+
+#### Sequencer
+
+For the sequencer aspect of this project, the interface (buttons, LEDs, and on-screen menus) should be responsive, with no noticeable delay between input and updating the displays. The tempo should be adjustable in a range of ~60-300 bpm. The tempo should not be inaccurate, and the adjustment should not be too coarse (increments of >4). When it comes to programming the steps and starting and stopping the sequencer, either it works or it doesn't.
+
+#### Drum Sounds/YM3812 Interfacing
+
+The minimum for this part to be considered working at all is for some type of sound to be outputted in accordance with the sequenced step pattern. To meet our goals, each of the sounds should be tunable and have adjustable volume. More subjectively, the sounds should be pleasing and resemble actual drums (bass, snare, hi-hat, etc.).
+
 ### 11. Timeline
 
 This section is to help guide your progress over the next few weeks. Feel free to adjust and edit the table below to something that would be useful to you. Really think about what you want to accomplish by the first milestone.
