@@ -45,6 +45,8 @@ What do you expect to achieve by the final demonstration or after milestone 1?
 
 What is your approach to the problem?
 
+First we plan to focus on connecting the buttons, LEDs, and screen, and making sure we understand using I2C to communicate with the GPIO expanders. Then we will divide up tasks for writing the sequencer firmware and a library for communicating with the OPL2 Audio Board. The interface for the OPL2 library will consist of a function that take in a pitch and a channel and trigger the sound that has been configured on the given channel at the given pitch, as well as a function that sets the volume of a channel. Additional functions to modify the sounds will be added if there is time.
+
 ### 9. Components
 
 What major components do you need and why?
