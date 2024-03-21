@@ -51,6 +51,8 @@ What major components do you need and why?
 
 #### ATmega328PB
 
+We plan to use an ATmega328PB as the brains of our device as we have the most familiarity with it, and its specifications match our requirements: 2 SPI buses, I2C bus, and 16 bit timers.
+
 #### Adafruit 358 Screen
 
 We need the current tempo to be displayed, and would like to potentially display other information. We plan to use this screen as we already have it.
@@ -58,8 +60,6 @@ We need the current tempo to be displayed, and would like to potentially display
 #### OPL2 Audio Board
 
 A drum machine requires some method of producing audio. The OPL2 was a widely used chip in PC sound cards and Yamaha keyboards, so it's use for generating musical sounds is well established. It provides 9 instrument channels that can be used simultaneously, fitting our goal of having at least 6. This board provides a serial interface for the chip, as well as incorporating the necessary DAC and timing circuitry required to use it.
-
-#### Rotary Encoder
 
 #### 16 Step Switch (Adafruit 5499)
 
