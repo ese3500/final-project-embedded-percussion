@@ -48,7 +48,7 @@ active step &mdash; For each of the 6 instrument channels, a step may be active 
 
 SRS 01 &mdash; When no channel is selected, users shall be able to use an on-screen menu to set a tempo in a range of 60-300 BPM.
 
-SRS 02 &mdash; The software shall use a PWM timer with a frequency of $`\frac{16000000}{2*128*(tempo * 4 / 60)}`$. A pin shall be driven high or low in accordance with this pulse signal.
+SRS 02 &mdash; The software shall use a PWM timer with a frequency of $`\lfloor\frac{16000000}{2*128*(tempo * 4 / 60)}\rfloor`$. A pin shall be driven high or low in accordance with this pulse signal.
 
 SRS 03 &mdash; When the sequencer is running, for each step, for each channel for which that step is active, a sound corresponding to the channel shall be played by the YM3812.
 
