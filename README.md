@@ -26,16 +26,16 @@ These are to help guide and direct your progress.
 Formulate key software requirements here.
 
 ### 5. Hardware Requirements Specification (HRS)
-
+X
 Formulate key hardware requirements here.
 
 ### 6. MVP Demo
-
-What do you expect to accomplish by the first milestone?
+X
+By the first demo, we aim to have all of our features implemented. This way we can leave the fine tuning and the polishing for the last week. This means all of the software and hardware will be implemented and complete, including but not limited to all buttons, knobs and switches. Any extra features we many have time for may or may not be completely implemented at this time
 
 ### 7. Final Demo
-
-What do you expect to achieve by the final demonstration or after milestone 1?
+X
+For the final demo, we will have our full project. This means that since the first demo we will have the entire casing for our design completed (will be 3d printed). The project will be in its full and polished versions. Any extra features that we may have time for will also be implemented during this time and at this point.
 
 ### 8. Methodology
 
