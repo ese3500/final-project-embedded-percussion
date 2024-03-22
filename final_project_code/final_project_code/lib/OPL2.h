@@ -9,7 +9,7 @@
 #ifndef OPL2_H_
 #define OPL2_H_
 
-
+void OPL2_init();
 
 
 
