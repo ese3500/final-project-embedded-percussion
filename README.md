@@ -66,6 +66,7 @@ Formulate key hardware requirements here.
 
 #### Overview
 
+
 The hardware of the design will consist of a series of buttons with various purposes interfacing with the microcontroller, a screen and the synthesizer.
 
 #### Definitions/Abbreviations
@@ -73,6 +74,7 @@ The hardware of the design will consist of a series of buttons with various purp
 OPL2 - Operator Type L 2, another name for the YM3812
 
 #### Functionality
+
 
 HRS 01 - ATmega328PB will be the main microcontroller for this design
 HRS 02 - An adafruit GPIO expander to expand the amount of available pins/registers we have access to
