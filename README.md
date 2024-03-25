@@ -30,15 +30,30 @@ By the end of the project we would like to have a 16-step drum machine with 6 in
 Formulate key software requirements here.
 
 ### 5. Hardware Requirements Specification (HRS)
-X
+
 Formulate key hardware requirements here.
 
+#### Overview
+The hardware of the design will consist of a series of buttons with various purposes interfacing with the microcontroller, a screen and the synthesizer.
+
+#### Definitions, Abbreviations
+N/A
+
+#### Functionality
+HRS 01 - ATmega328PB will be the main microcontroller for this design
+HRS 02 - An adafruit GPIO expander to expand the amount of available pins/registers we have access to
+HRS 03 - 16 pushbuttons to represent different notes in a measure
+HRS 04 - 6 more pushbuttons to represent types of drums
+HRS 05 - 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting
+HRS 06 - OPL2 audioboard using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing
+HRS 07 - A rotary encoder for controlling the screen menus and the volume
+
 ### 6. MVP Demo
-X
+
 By the first demo, we aim to have all of our features implemented. This way we can leave the fine tuning and the polishing for the last week. This means all of the software and hardware will be implemented and complete, including but not limited to all buttons, knobs and switches. Any extra features we many have time for may or may not be completely implemented at this time
 
 ### 7. Final Demo
-X
+
 For the final demo, we will have our full project. This means that since the first demo we will have the entire casing for our design completed (will be 3d printed). The project will be in its full and polished versions. Any extra features that we may have time for will also be implemented during this time and at this point.
 
 ### 8. Methodology
