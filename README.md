@@ -65,12 +65,15 @@ SRS 06 &mdash; Using an on-screen menu, users shall be able to modify the tuning
 Formulate key hardware requirements here.
 
 #### Overview
+
 The hardware of the design will consist of a series of buttons with various purposes interfacing with the microcontroller, a screen and the synthesizer.
 
 #### Definitions, Abbreviations
+
 N/A
 
 #### Functionality
+
 HRS 01 - ATmega328PB will be the main microcontroller for this design
 HRS 02 - An adafruit GPIO expander to expand the amount of available pins/registers we have access to
 HRS 03 - 16 pushbuttons to represent different notes in a measure
