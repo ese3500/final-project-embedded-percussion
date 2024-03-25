@@ -141,16 +141,16 @@ This section is to help guide your progress over the next few weeks. Feel free t
 
 | **Week**            | **Task** | **Assigned To**    |
 |----------           |--------- |------------------- |
-| Week 1: 3/24 - 3/31 |          |                    |
-|                     |          |                    |
-| Week 2: 4/1 - 4/7   |          |                    |
-|                     |          |                    |
-| Week 3: 4/8 - 4/14  |          |                    |
-|                     |          |                    |
-| Week 4: 4/15 - 4/21 |          |                    |
-|                     |          |                    |
-| Week 5: 4/22 - 4/26 |          |                    |
-|                     |          |                    |
+| Week 1: 3/24 - 3/31 |          | Madison            |
+|                     |          | Mia                |
+| Week 2: 4/1 - 4/7   |          | Madison            |
+|                     |          | Mia                |
+| Week 3: 4/8 - 4/14  |          | Madison            |
+|                     |          | Mia                |
+| Week 4: 4/15 - 4/21 |          | Madison            |
+|                     |          | Mia                |
+| Week 5: 4/22 - 4/26 |          | Madison            |
+|                     |          | Mia                |
 
 turn this into the actual table (not actually in order here):\
 OPL2 interfacing: Mia\
