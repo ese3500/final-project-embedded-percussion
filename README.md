@@ -141,24 +141,15 @@ This section is to help guide your progress over the next few weeks. Feel free t
 
 | **Week**            | **Task** | **Assigned To**    |
 |----------           |--------- |------------------- |
-| Week 1: 3/24 - 3/31 | finishing design and buying parts | madison and mia |
-|                     |                |                                  |
-| Week 2: 4/1 - 4/7   | button and led gpio expander interfacing  |     madison        |
-|                     |         |                    |
-| Week 3: 4/8 - 4/14  |    OPL2 interfacing      |        madison            |
-|                     |          |                    |
-| Week 4: 4/15 - 4/21 | rotary encoder and complete functionality testing         |       madison             |
-|                     |          |                    |
-| Week 5: 4/22 - 4/26 |   case design and production       |       madison             |
-|                     |          |                    |
-
-turn this into the actual table (not actually in order here):\
-OPL2 interfacing: Mia\
-Button and led GPIO expander interfacing: Madison\
-On-screen UI: Mia\
-?: Madison\
-sequencer code: Mia\
-case design?: Madison
+| Week 1: 3/24 - 3/31 | finishing design and buying parts   | Madison and Mia |
+| Week 2: 4/1 - 4/7   | assemble OPL2 board                       |  Madison  |
+|                     | OPL2 library                              |  Mia      |
+| Week 3: 4/8 - 4/14  | button and led gpio expander interfacing  |  Madison  |
+|                     | write main sequencer code                 |  Mia      |
+| Week 4: 4/15 - 4/21 | rotary encoder and complete functionality testing | Madison |
+|                     | on-screen UI                              |  Mia      |
+| Week 5: 4/22 - 4/26 | case design and production                |  Madison  |
+|                     | software bugfixing and polish UI          |  Mia      |
 
 ### 12. Proposal Presentation
 
