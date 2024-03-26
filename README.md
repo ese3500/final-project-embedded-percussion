@@ -68,9 +68,9 @@ Formulate key hardware requirements here.
 
 The hardware of the design will consist of a series of buttons with various purposes interfacing with the microcontroller, a screen and the synthesizer.
 
-#### Definitions, Abbreviations
+#### Definitions/Abbreviations
 
-N/A
+OPL2 - Operator Type L 2, another name for the YM3812
 
 #### Functionality
 
@@ -79,7 +79,7 @@ HRS 02 - An adafruit GPIO expander to expand the amount of available pins/regist
 HRS 03 - 16 pushbuttons to represent different notes in a measure
 HRS 04 - 6 more pushbuttons to represent types of drums
 HRS 05 - 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting
-HRS 06 - OPL2 audioboard using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing
+HRS 06 - OPL2 Audio Board using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing
 HRS 07 - A rotary encoder for controlling the screen menus and the volume
 
 ### 6. MVP Demo
