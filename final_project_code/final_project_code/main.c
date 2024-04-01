@@ -7,8 +7,9 @@
 #define F_CPU 16000000
 
 #include <avr/io.h>
-#include "lib/LCD_GFX.h"
 #include "lib/OPL2.h"
+#include "lib/ST7735.h"
+#include "lib/LCD_GFX.h"
 
 #define BD 0 // bass drum
 #define SN 1 // snare
@@ -23,17 +24,14 @@ int step;
 volatile int next_step;
 
 void init(void) {
+    //lcd_init();
+    OPL2_init();
     // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
     // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
 }
 
 void nextStep(void) {
     
-}
-
-void init(void) {
-    lcd_init();
-    OPL2_init();
 }
 
 int main(void) {

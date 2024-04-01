@@ -5,9 +5,10 @@
  *  Author: miada
  */ 
 
-
 #ifndef GPIO_EXPANDER_H_
 #define GPIO_EXPANDER_H_
+
+#include <avr/pgmspace.h>
 
 // takes 16 bit integer and sets the leds according to the bits
 void setLEDs(uint16_t state);

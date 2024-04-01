@@ -59,19 +59,6 @@ static void SPI_Controller_Init(void)
 ******************************************************************************/
 
 /**************************************************************************//**
-* @fn            void Delay_ms(unsigned int n)
-* @brief        Delay function using variables
-* @note
-*****************************************************************************/
-void Delay_ms(unsigned int n)
-{
-    while (n--)
-    {
-        _delay_ms(1);
-    }
-}
-
-/**************************************************************************//**
 * @fn            void SPI_ControllerTx(uint8_t data)
 * @brief        Send 8-bit SPI data to peripheral
 * @note

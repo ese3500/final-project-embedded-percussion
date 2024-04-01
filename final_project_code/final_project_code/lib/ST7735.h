@@ -13,6 +13,7 @@
 *****************************************************************************/
 
 #include <avr/io.h>
+#include "utilities.h"
 
 #ifndef ST7735_H_
 #define ST7735_H_
@@ -97,14 +98,6 @@
 #define MADCTL_BGR 0x08
 #define MADCTL_MH  0x04
 
-//Macro Functions
-#define set(reg,bit) (reg) |= (1<<(bit))
-#define clear(reg,bit) (reg) &= ~(1<<(bit))
-#define toggle(reg,bit) (reg) ^= (1<<(bit))
-#define loop_until_bit_is_set(sfr, bit) do { } while (bit_is_clear(sfr, bit))
-#define loop_until_bit_is_clear(sfr, bit) do { } while (bit_is_set(sfr, bit))
-
-void Delay_ms(unsigned int n);
 void lcd_init(void);
 void sendCommands (const uint8_t *cmds, uint8_t length);
 void LCD_setAddr(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
