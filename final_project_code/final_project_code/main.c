@@ -23,19 +23,25 @@ int step;
 volatile int next_step;
 
 void init(void) {
-	// set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
-	// internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
+    // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
+    // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
 }
 
 void nextStep(void) {
-	
+    
+}
+
+void init(void) {
+    lcd_init();
+    OPL2_init();
 }
 
 int main(void) {
+    init();
     while (1) {
-		if (next_step) {
-			nextStep();
-		}		
+        if (next_step) {
+            nextStep();
+        }        
     }
 }
 

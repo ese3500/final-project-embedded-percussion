@@ -1,15 +1,15 @@
 /**************************************************************************//**
 * @file        ST7735.h
-* @ingroup 	   ST7735
+* @ingroup        ST7735
 * @brief       Basic display driver for Adafruit 358 1.8" TFT LCD with ST7735R chip
 *
 * @details     Basic display driver for Adafruit 358 1.8" TFT LCD with ST7735R chip
 *
 *
 * @copyright
-* @author	   J. Ye
+* @author       J. Ye
 * @date        April 19, 2021
-* @version		1.0
+* @version        1.0
 *****************************************************************************/
 
 #include <avr/io.h>
@@ -17,18 +17,18 @@
 #ifndef ST7735_H_
 #define ST7735_H_
 
-#define LCD_PORT		PORTB
-#define LCD_DDR			DDRB
-#define LCD_DC			PORTB0
-#define LCD_RST			PORTB1
-#define LCD_TFT_CS		PORTB2
-#define LCD_MOSI		PORTB3
-#define LCD_SCK			PORTB5
+#define LCD_PORT           PORTB
+#define LCD_DDR            DDRB
+#define LCD_DC             PORTB0
+#define LCD_RST            PORTB1
+#define LCD_TFT_CS         PORTB2
+#define LCD_MOSI           PORTB3
+#define LCD_SCK            PORTB5
 
 //LCD_LITE must be connected to pin 6 of Arduino Uno for PWM to change brightness (Otherwise, connect to 5V supply)
-#define LCD_LITE_PORT	PORTD
-#define LCD_LITE_DDR	DDRD
-#define LCD_LITE		PORTD6
+#define LCD_LITE_PORT   PORTD
+#define LCD_LITE_DDR    DDRD
+#define LCD_LITE        PORTD6
 
 #define LCD_WIDTH 160
 #define LCD_HEIGHT 128

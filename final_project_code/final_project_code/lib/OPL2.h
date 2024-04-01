@@ -5,6 +5,14 @@
  *  Author: miada
  */ 
 
+/*
+ * Pins:
+ * PC1: shift
+ * PE2: latch
+ * PE3: data
+ * PD0: A0 (address)
+ * PD1: reset
+ */
 
 #ifndef OPL2_H_
 #define OPL2_H_

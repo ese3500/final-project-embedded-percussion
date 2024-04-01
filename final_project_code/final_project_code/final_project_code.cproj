@@ -123,6 +123,12 @@
     <Compile Include="lib\ASCII_LUT.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="lib\GPIO_expander.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="lib\GPIO_expander.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="lib\LCD_GFX.c">
       <SubType>compile</SubType>
     </Compile>
