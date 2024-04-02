@@ -7,13 +7,10 @@
 
 #include <avr/io.h>
 #include "ASCII_LUT.h"
+#include "utilities.h"
 
 #ifndef LCD_GFX_H_
 #define LCD_GFX_H_
-
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#define CLAMP(x, upper, lower) (MIN(upper, MAX(x, lower)))
 
 // colors
 #define    BLACK     0x0000

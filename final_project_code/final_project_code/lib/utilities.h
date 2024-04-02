@@ -18,7 +18,8 @@
 
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#define CLAMP(x, upper, lower) (MIN(upper, MAX(x, lower)))
+//#define CLAMP(x, upper, lower) (MIN(upper, MAX(x, lower)))
+#define CLAMP(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 
 /**************************************************************************//**
 * @fn            void Delay_ms(unsigned int n)

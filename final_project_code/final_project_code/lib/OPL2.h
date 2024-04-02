@@ -58,12 +58,11 @@ typedef struct {
 } Instrument;
 
 void OPL2_init(void);
+Instrument createInstrument();
+Instrument loadInstrument(const unsigned char *instrumentData, int fromProgmem);
 void setInstrument(byte channel, Instrument instrument, float volume);
 void setBlock(byte channel, byte block);
 void playNote(byte channel, byte octave, byte note);
-
-
-Instrument loadInstrument(const unsigned char *instrumentData, int fromProgmem);
 
 
 #endif /* OPL2_H_ */

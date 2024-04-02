@@ -249,6 +249,7 @@ void OPL2_init(void) {
     DDRD |= A0;
     DDRD |= RESET;
 
+    PORTE |= LATCH;
     PORTD &= ~A0;
     PORTD |= RESET;
     
