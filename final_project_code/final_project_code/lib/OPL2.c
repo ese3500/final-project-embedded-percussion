@@ -54,20 +54,6 @@
 #define DRUM_BITS_CYMBAL 0x02
 #define DRUM_BITS_HI_HAT 0x01
 
-// Note to frequency mapping.
-#define NOTE_C   0
-#define NOTE_CS  1
-#define NOTE_D   2
-#define NOTE_DS  3
-#define NOTE_E   4
-#define NOTE_F   5
-#define NOTE_FS  6
-#define NOTE_G   7
-#define NOTE_GS  8
-#define NOTE_A   9
-#define NOTE_AS 10
-#define NOTE_B  11
-
 // Tune specific declarations.
 #define NUM_OCTAVES      7
 #define NUM_NOTES       12
@@ -104,7 +90,9 @@ const byte drumBits[5] = {
 };
 
 void SPI_transfer(byte value) {
-
+    SPDR1 = value;
+    asm volatile("nop");
+    while(!(SPSR1 & (1<<SPIF1)));
 }
 
 void write(byte reg, byte value) {
@@ -252,7 +240,10 @@ void OPL2_init(void) {
     PORTE |= LATCH;
     PORTE &= ~DATA;
     SPCR1 |= (1<<SPE1) | (1<<MSTR1);
-    SPSR1 |= (1<<SPI2X1);
+    SPSR1 &= ~(1<<SPI2X1);
+    //SPCR1 |= (1<<SPE1) | (1<<MSTR1) | (((1 ^ 0x1) >> 1) & 0x03) | (0x00 & 0x0C);
+    //SPSR1 |= (1 ^ 0x1) & 0x1;
+    //SPSR1 |= (1<<SPI2X1);
     
     // set up other pins
     DDRD |= A0;
@@ -654,6 +645,41 @@ void setDrumInstrument(Instrument instrument, byte drumType, float volume) {
     value +
     ((instrument.feedback & 0x07) << 1) +
     (instrument.isAdditiveSynth ? 0x01 : 0x00));
+}
+
+Instrument loadInstrument(const unsigned char *instrumentData, int fromProgmem) {
+    Instrument instrument = createInstrument();
+
+    byte data[11];
+    for (byte i = 0; i < 11; i ++) {
+        if (fromProgmem) {
+            data[i] = pgm_read_byte_near(instrumentData + i);
+        } else {
+            data[i] = instrumentData[i];
+        }
+    }
+
+    for (byte op = OPERATOR1; op <= OPERATOR2; op ++) {
+        instrument.operators[op].hasTremolo = data[op * 5 + 1] & 0x80 ? TRUE : FALSE;
+        instrument.operators[op].hasVibrato = data[op * 5 + 1] & 0x40 ? TRUE : FALSE;
+        instrument.operators[op].hasSustain = data[op * 5 + 1] & 0x20 ? TRUE : FALSE;
+        instrument.operators[op].hasEnvelopeScaling = data[op * 5 + 1] & 0x10 ? TRUE : FALSE;
+        instrument.operators[op].frequencyMultiplier = (data[op * 5 + 1] & 0x0F);
+        instrument.operators[op].keyScaleLevel = (data[op * 5 + 2] & 0xC0) >> 6;
+        instrument.operators[op].outputLevel = data[op * 5 + 2] & 0x3F;
+        instrument.operators[op].attack = (data[op * 5 + 3] & 0xF0) >> 4;
+        instrument.operators[op].decay = data[op * 5 + 3] & 0x0F;
+        instrument.operators[op].sustain = (data[op * 5 + 4] & 0xF0) >> 4;
+        instrument.operators[op].release = data[op * 5 + 4] & 0x0F;
+    }
+    instrument.operators[0].waveForm = data[10] & 0x07;
+    instrument.operators[1].waveForm = (data[10] & 0x70) >> 4;
+
+    instrument.transpose = data[0];
+    instrument.feedback = (data[5] & 0x0E) >> 1;
+    instrument.isAdditiveSynth = data[5] & 0x01 ? TRUE : FALSE;
+
+    return instrument;
 }
 
 void playNote(byte channel, byte octave, byte note) {

@@ -19,6 +19,20 @@
 
 #include <avr/pgmspace.h>
 
+// Note to frequency mapping.
+#define NOTE_C   0
+#define NOTE_CS  1
+#define NOTE_D   2
+#define NOTE_DS  3
+#define NOTE_E   4
+#define NOTE_F   5
+#define NOTE_FS  6
+#define NOTE_G   7
+#define NOTE_GS  8
+#define NOTE_A   9
+#define NOTE_AS 10
+#define NOTE_B  11
+
 typedef uint8_t byte;
 
 typedef struct {
@@ -44,7 +58,12 @@ typedef struct {
 } Instrument;
 
 void OPL2_init(void);
+void setInstrument(byte channel, Instrument instrument, float volume);
+void setBlock(byte channel, byte block);
+void playNote(byte channel, byte octave, byte note);
 
+
+Instrument loadInstrument(const unsigned char *instrumentData, int fromProgmem);
 
 
 #endif /* OPL2_H_ */
