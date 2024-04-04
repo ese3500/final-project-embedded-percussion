@@ -240,10 +240,8 @@ void OPL2_init(void) {
     PORTE |= LATCH;
     PORTE &= ~DATA;
     SPCR1 |= (1<<SPE1) | (1<<MSTR1);
+    SPCR1 |= 1<<SPR10;
     SPSR1 &= ~(1<<SPI2X1);
-    //SPCR1 |= (1<<SPE1) | (1<<MSTR1) | (((1 ^ 0x1) >> 1) & 0x03) | (0x00 & 0x0C);
-    //SPSR1 |= (1 ^ 0x1) & 0x1;
-    //SPSR1 |= (1<<SPI2X1);
     
     // set up other pins
     DDRD |= A0;

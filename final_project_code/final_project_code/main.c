@@ -52,7 +52,7 @@ const unsigned char INSTRUMENT_FRHORN[11]   PROGMEM = { 0x00, 0x21, 0x1F, 0x79, 
 
 int main(void) {
     init();
-    Instrument piano = loadInstrument(INSTRUMENT_FRHORN, 1);
+    Instrument piano = loadInstrument(INSTRUMENT_HONKTONK, 1);
     setInstrument(0, piano, 1.0);
     while (1) {
         playNote(0, octave, NOTE_C);
