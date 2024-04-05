@@ -10,9 +10,10 @@
 
 #include <avr/pgmspace.h>
 
+void GPIO_init(void);
 // takes 16 bit integer and sets the leds according to the bits
-void setLEDs(uint16_t state);
-// some function(s) for reading the led state
+void GPIO_setLEDs(uint16_t state);
+// some function(s) for reading the button state
 
 
 

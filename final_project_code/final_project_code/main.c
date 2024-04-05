@@ -54,6 +54,8 @@ int main(void) {
     init();
     Instrument piano = loadInstrument(INSTRUMENT_HONKTONK, 1);
     setInstrument(0, piano, 1.0);
+    LCD_setScreen(BLACK);
+    LCD_drawString(22, 22, "Drum Machine", WHITE, BLACK);
     while (1) {
         playNote(0, octave, NOTE_C);
         _delay_ms(delayamnt);
