@@ -14,6 +14,8 @@ void GPIO_init(void);
 // takes 16 bit integer and sets the leds according to the bits
 void GPIO_setLEDs(uint16_t state);
 // some function(s) for reading the button state
+uint16_t GPIO_readSteps(void);
+uint16_t GPIO_readButtons(void);
 
 
 

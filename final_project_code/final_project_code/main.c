@@ -11,6 +11,7 @@
 #include "lib/OPL2.h"
 #include "lib/ST7735.h"
 #include "lib/LCD_GFX.h"
+#include "lib/GPIO_expander.h"
 
 #define BD 0 // bass drum
 #define SN 1 // snare
@@ -28,6 +29,7 @@ void init(void) {
     cli();
     lcd_init();
     OPL2_init();
+    GPIO_init();
     // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
     // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
     sei();
@@ -56,7 +58,10 @@ int main(void) {
     setInstrument(0, piano, 1.0);
     LCD_setScreen(BLACK);
     LCD_drawString(22, 22, "Drum Machine", WHITE, BLACK);
+    uint16_t leds = 0x0001;
+    int i = 0;
     while (1) {
+        GPIO_setLEDs(leds << i);
         playNote(0, octave, NOTE_C);
         _delay_ms(delayamnt);
         playNote(0, octave, NOTE_D);
@@ -75,6 +80,7 @@ int main(void) {
         _delay_ms(delayamnt);
         if (next_step) {
             nextStep();
-        }        
+        }
+        i = (i + 1) % 16; 
     }
 }
