@@ -112,7 +112,7 @@ static uint16_t transmit(uint8_t slave_addr, uint8_t reg, uint8_t* data, int num
     return 0;
 }
 
-uint16_t receive(uint8_t slave_addr, uint8_t* data, int num_bytes) {
+static uint16_t receive(uint8_t slave_addr, uint8_t* data, int num_bytes) {
     uint16_t error;
     
     error = start();
@@ -143,6 +143,9 @@ void GPIO_init(void) {
     // change to 12 for 400k
     TWBR0 = 24;
     
+    transmit(GPIO_ADDR1, GPIO_REG_CONFIG0, b(1){0x0}, 1);
+    transmit(GPIO_ADDR1, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    transmit(GPIO_ADDR1, GPIO_REG_GCR, b(1){0b00010000}, 1);
     // gpio 1 starts in correct state (all outputs and low, no interrupt), 2 and 3 must be set up
     // set all pins as inputs
     // set as inputs
@@ -158,7 +161,8 @@ void GPIO_init(void) {
 }
 
 void GPIO_setLEDs(uint16_t state) {
-    
+    transmit(GPIO_ADDR1, GPIO_REG_OUTPUT0, b(2){state & 0xFF, state >> 8}, 2);
+    //transmit(GPIO_ADDR1, GPIO_REG_OUTPUT1, b(1){state >> 8}, 1);
 }
 
 static uint16_t readInput(uint8_t addr) {

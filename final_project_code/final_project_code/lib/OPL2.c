@@ -240,10 +240,9 @@ void OPL2_init(void) {
     PORTE |= LATCH;
     PORTE &= ~DATA;
     SPCR1 |= (1<<SPE1) | (1<<MSTR1);
-    // 100kHz
-    // TODO: try changing SPI2X1 to get 200kHz
+    // 200kHz
     SPCR1 |= 1<<SPR10;
-    SPSR1 &= ~(1<<SPI2X1);
+    SPSR1 |= (1<<SPI2X1);
     
     // set up other pins
     DDRD |= A0;

@@ -61,7 +61,12 @@ int main(void) {
     uint16_t leds = 0x0001;
     int i = 0;
     while (1) {
-        GPIO_setLEDs(leds << i);
+        //GPIO_setLEDs(leds << i);
+        //_delay_ms(200);
+        GPIO_setLEDs(0x0001);
+        _delay_ms(500);
+        GPIO_setLEDs(0x0100);
+        _delay_ms(500);
         playNote(0, octave, NOTE_C);
         _delay_ms(delayamnt);
         playNote(0, octave, NOTE_D);
@@ -78,9 +83,9 @@ int main(void) {
         _delay_ms(delayamnt);
         playNote(0, octave + 1, NOTE_C);
         _delay_ms(delayamnt);
-        if (next_step) {
-            nextStep();
-        }
+        //if (next_step) {
+          //  nextStep();
+        //}
         i = (i + 1) % 16; 
     }
 }
