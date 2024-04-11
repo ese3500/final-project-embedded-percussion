@@ -23,20 +23,20 @@
 #define NUM_INST 6
 
 int steps[6][16] = {
-    {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
-    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}        
+    {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
+    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
+    {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // CL
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // CY
+    {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0}, // OH
+    {0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
 };
-const uint8_t octaves[6] = {1, 2, 3, 4, 4, 4};
-int tempo;
-int step;
+const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
+int tempo = 96;
+int step = 0;
 int evenorodd = 0;
-volatile int next_step;
-volatile int input_intrpt1;
-volatile int input_intrpt2;
+volatile int next_step = 0;
+volatile int input_intrpt1 = 0;
+volatile int input_intrpt2 = 0;
 
 const unsigned char INSTRUMENT_PIANO1[11] PROGMEM = { 0x00, 0x33, 0x5A, 0xB2, 0x50, 0x00, 0x31, 0x00, 0xB1, 0xF5, 0x11 };
 const unsigned char INSTRUMENT_HONKTONK[11] PROGMEM = { 0x00, 0x34, 0x9B, 0xF3, 0x63, 0x01, 0x11, 0x00, 0x92, 0xF5, 0x11 };
@@ -59,6 +59,11 @@ ISR(PCINT3_vect) {
     input_intrpt1 = 1;
 }
 
+
+ISR(TIMER3_COMPA_vect) {
+    next_step = 1;
+}
+
 void init(void) {
     cli();
     DDRE &= ~(1<<PORTE0);
@@ -70,6 +75,20 @@ void init(void) {
     lcd_init();
     OPL2_init();
     GPIO_init();
+    
+    // 1/64 prescale
+    TCCR3B |= (1<<CS30);
+    TCCR3B |= (1<<CS31);
+    TCCR3B &= ~(1<<CS32);
+    // set timer to ctc mode
+    TCCR3A &= ~(1<<WGM30);
+    TCCR3A &= ~(1<<WGM31);
+    TCCR3B |= (1<<WGM32);
+    TCCR3B &= ~(1<<WGM33);
+    
+    OCR3A = F_CPU / ((float)(64 * tempo * 4) / 60.0);
+    
+    TIMSK3 |= (1<<OCIE3A);
     // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
     // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
     sei();
@@ -124,6 +143,7 @@ int main(void) {
     setUpInstruments();
     LCD_setScreen(BLACK);
     LCD_drawString(22, 22, "Drum Machine", WHITE, BLACK);
+    _delay_ms(200);
     while (1) {
         if (next_step) {
           nextStep();
