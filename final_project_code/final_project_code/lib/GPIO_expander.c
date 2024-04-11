@@ -181,7 +181,7 @@ void GPIO_init(void) {
     transmit(GPIO_ADDR3, GPIO_REG_CONFIG1, b(1){0x0}, 1);
     #endif
     // enable interrupts
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0xFC}, 1);
+    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0x0}, 1);
     transmit(GPIO_ADDR2, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
     #if USE_GPIO3
     transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(1){0xFF}, 1);
