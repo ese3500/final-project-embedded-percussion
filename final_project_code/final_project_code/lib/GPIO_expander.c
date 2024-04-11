@@ -29,6 +29,9 @@
 #define GPIO_REG_GCR 0x11        ///< Register for general configuration
 #define GPIO_REG_LEDMODE0 0x12   ///< Register for configuring P0 const current
 #define GPIO_REG_LEDMODE1 0x13   ///< Register for configuring P1 const current
+#define GPIO_REG_LED_DIM0 0x20
+
+#define LED_BRIGHTNESS 0x0F
 
 static uint16_t start(void) {
     TWCR0 =  (1<<TWINT) | (1<<TWEN) | (1<<TWSTA);
@@ -125,7 +128,7 @@ static uint16_t receive(uint8_t slave_addr, uint8_t* data, int num_bytes) {
         return error;
     }
     
-    for (int i = 0; i < num_bytes-1; ++i) {
+    for (int i = 0; i < num_bytes-1; i++) {
         data[i] = receive_byte(1);
     }
     data[num_bytes-1] = receive_byte(0);
@@ -141,13 +144,23 @@ void GPIO_init(void) {
     DDRC  &= ~((1<<PORTC4) | (1<<PORTC5));
     // 16M / (16 + 2*24) = 250k
     // change to 12 for 400k
-    TWBR0 = 24;
+    TWBR0 = 12;
     
+    // set up gpio 1
+    // set as outputs
     transmit(GPIO_ADDR1, GPIO_REG_CONFIG0, b(1){0x0}, 1);
     transmit(GPIO_ADDR1, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    // set p1 to push-pull mode
     transmit(GPIO_ADDR1, GPIO_REG_GCR, b(1){0b00010000}, 1);
-    // gpio 1 starts in correct state (all outputs and low, no interrupt), 2 and 3 must be set up
-    // set all pins as inputs
+    // set p1 and p0 to led drive mode
+    transmit(GPIO_ADDR1, GPIO_REG_LEDMODE0, b(2){0x0, 0x0}, 2);
+    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, b(16){
+            0x0, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0
+        }, 16);
+    // set up gpio 2 and 3
     // set as inputs
     transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(1){0xFF}, 1);
     transmit(GPIO_ADDR2, GPIO_REG_CONFIG1, b(1){0xFF}, 1);
@@ -158,21 +171,34 @@ void GPIO_init(void) {
     transmit(GPIO_ADDR2, GPIO_REG_INTENABLE1, b(1){0x1}, 1);
     transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(1){0x1}, 1);
     transmit(GPIO_ADDR3, GPIO_REG_INTENABLE1, b(1){0x1}, 1);
+    // set push-pull mode
+    transmit(GPIO_ADDR2, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_GCR, b(1){0b00010000}, 1);
 }
 
-void GPIO_setLEDs(uint16_t state) {
-    transmit(GPIO_ADDR1, GPIO_REG_OUTPUT0, b(2){state & 0xFF, state >> 8}, 2);
-    //transmit(GPIO_ADDR1, GPIO_REG_OUTPUT1, b(1){state >> 8}, 1);
+void GPIO_setAllLEDs(uint16_t state) {
+    uint8_t bytes[16];
+    for (int i = 0; i < 16; i++) {
+        bytes[i] = (state >> i) & 0x1 ? LED_BRIGHTNESS : 0;
+    }
+    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
+}
+
+void GPIO_setLED(uint8_t LED, uint8_t onOff) {
+    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0 + LED, b(1){onOff ? LED_BRIGHTNESS : 0x0}, 1);
 }
 
 static uint16_t readInput(uint8_t addr) {
-    return 0;
+    uint8_t data[2] = {0x34, 0x12};
+    transmit(addr, GPIO_REG_INPUT0, (void*)0, 0);
+    receive(addr, data, 2);
+    return ((uint16_t)data[1] << 8) | data[0];
 }
 
 uint16_t GPIO_readButtons(void) {
-    return readInput(GPIO_ADDR2);
+    return readInput(GPIO_ADDR3);
 }
 
 uint16_t GPIO_readSteps(void) {
-    return readInput(GPIO_ADDR3);
+    return readInput(GPIO_ADDR2);
 }

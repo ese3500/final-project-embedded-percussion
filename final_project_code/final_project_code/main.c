@@ -5,13 +5,16 @@
  * Author : Mia McMahill & Madison Hughes
  */ 
 #define F_CPU 16000000
-
+#define BAUD_RATE 9600
+#define BAUD_PRESCALER (((F_CPU / (BAUD_RATE * 16UL))) - 1)
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "lib/OPL2.h"
 #include "lib/ST7735.h"
 #include "lib/LCD_GFX.h"
 #include "lib/GPIO_expander.h"
+#include "lib/uart.h"
+#include <stdio.h>
 
 #define BD 0 // bass drum
 #define SN 1 // snare
@@ -24,8 +27,13 @@ int steps[6][16];
 int tempo;
 int step;
 volatile int next_step;
+volatile int input_intrpt1;
+volatile int input_intrpt2;
+
+char string[25];
 
 void init(void) {
+    UART_init(BAUD_PRESCALER);
     cli();
     lcd_init();
     OPL2_init();
@@ -61,31 +69,39 @@ int main(void) {
     uint16_t leds = 0x0001;
     int i = 0;
     while (1) {
-        //GPIO_setLEDs(leds << i);
+        //GPIO_setAllLEDs(leds << i);
         //_delay_ms(200);
-        GPIO_setLEDs(0x0001);
+        if (input_intrpt1) {
+            uint16_t steps = GPIO_readSteps();
+            sprintf(string, "%x\n", steps);
+            UART_putstring(string);
+            input_intrpt1 = 0;
+        }            
+        GPIO_setLED(0, 1);
         _delay_ms(500);
-        GPIO_setLEDs(0x0100);
+        GPIO_setLED(0, 0);
+        GPIO_setLED(4, 1);
         _delay_ms(500);
-        playNote(0, octave, NOTE_C);
-        _delay_ms(delayamnt);
-        playNote(0, octave, NOTE_D);
-        _delay_ms(delayamnt);
-        playNote(0, octave, NOTE_E);
-        _delay_ms(delayamnt);
-        playNote(0, octave, NOTE_F);
-        _delay_ms(delayamnt);
-        playNote(0, octave, NOTE_G);
-        _delay_ms(delayamnt);
-        playNote(0, octave, NOTE_A);
-        _delay_ms(delayamnt);
-        playNote(0, octave, NOTE_B);
-        _delay_ms(delayamnt);
-        playNote(0, octave + 1, NOTE_C);
-        _delay_ms(delayamnt);
+        GPIO_setLED(4, 0);
+        //playNote(0, octave, NOTE_C);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave, NOTE_D);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave, NOTE_E);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave, NOTE_F);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave, NOTE_G);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave, NOTE_A);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave, NOTE_B);
+        //_delay_ms(delayamnt);
+        //playNote(0, octave + 1, NOTE_C);
+        //_delay_ms(delayamnt);
         //if (next_step) {
           //  nextStep();
         //}
-        i = (i + 1) % 16; 
+        //i = (i + 1) % 16; 
     }
 }
