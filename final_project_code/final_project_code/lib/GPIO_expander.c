@@ -12,9 +12,9 @@
 
 #define b(len) (uint8_t[len])
 
-#define GPIO_ADDR1 0x58  // GPIO expander for LEDs
-#define GPIO_ADDR2 0x59  // GPIO expander for step buttons
-#define GPIO_ADDR3 0x5A  // GPIO expander for any other buttons
+#define GPIO_ADDR1 0x59  // GPIO expander for LEDs
+#define GPIO_ADDR2 0x5A  // GPIO expander for step buttons
+#define GPIO_ADDR3 0x58  // GPIO expander for any other buttons
 
 #define GPIO_REG_CHIPID 0x10     ///< Register for hardcode chip ID
 #define GPIO_REG_SOFTRESET 0x7F  ///< Register for soft resetting
@@ -146,6 +146,14 @@ void GPIO_init(void) {
     // change to 12 for 400k
     TWBR0 = 12;
     
+    #define USE_GPIO3 0
+    
+    transmit(GPIO_ADDR1, 0x7F, b(1){0x0},1);
+    transmit(GPIO_ADDR2, 0x7F, b(1){0x0},1);
+    #if USE_GPIO3
+    transmit(GPIO_ADDR3, 0x7F, b(1){0x0},1);
+    #endif
+    
     // set up gpio 1
     // set as outputs
     transmit(GPIO_ADDR1, GPIO_REG_CONFIG0, b(1){0x0}, 1);
@@ -162,17 +170,23 @@ void GPIO_init(void) {
     // set up gpio 2 and 3
     // set push-pull mode
     transmit(GPIO_ADDR2, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    #if USE_GPIO3
     transmit(GPIO_ADDR3, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    #endif
     // set as inputs
     transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(1){0xFF}, 1);
     transmit(GPIO_ADDR2, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    #if USE_GPIO3
     transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(1){0x0}, 1);
     transmit(GPIO_ADDR3, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    #endif
     // enable interrupts
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0x0}, 1);
+    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0xFC}, 1);
     transmit(GPIO_ADDR2, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
+    #if USE_GPIO3
     transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(1){0xFF}, 1);
     transmit(GPIO_ADDR3, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
+    #endif
     // clear the interrupt
     GPIO_readSteps();
     // turn off all leds
