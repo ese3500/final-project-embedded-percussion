@@ -155,25 +155,28 @@ void GPIO_init(void) {
     // set p1 and p0 to led drive mode
     transmit(GPIO_ADDR1, GPIO_REG_LEDMODE0, b(2){0x0, 0x0}, 2);
     transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, b(16){
-            0x0, 0x0, 0x0, 0x0,
-            0x0, 0x0, 0x0, 0x0,
-            0x0, 0x0, 0x0, 0x0,
-            0x0, 0x0, 0x0, 0x0
-        }, 16);
+        0x0, 0x0, 0x0, 0x0,
+        0x0, 0x0, 0x0, 0x0,
+        0x0, 0x0, 0x0, 0x0,
+        0x0, 0x0, 0x0, 0x0}, 16);
     // set up gpio 2 and 3
-    // set as inputs
-    transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(1){0xFF}, 1);
-    transmit(GPIO_ADDR2, GPIO_REG_CONFIG1, b(1){0xFF}, 1);
-    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(1){0xFF}, 1);
-    transmit(GPIO_ADDR3, GPIO_REG_CONFIG1, b(1){0xFF}, 1);
-    // enable interrupts
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0x1}, 1);
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE1, b(1){0x1}, 1);
-    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(1){0x1}, 1);
-    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE1, b(1){0x1}, 1);
     // set push-pull mode
     transmit(GPIO_ADDR2, GPIO_REG_GCR, b(1){0b00010000}, 1);
     transmit(GPIO_ADDR3, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    // set as inputs
+    transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(1){0xFF}, 1);
+    transmit(GPIO_ADDR2, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(1){0x0}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    // enable interrupts
+    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0x0}, 1);
+    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(1){0xFF}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
+    // clear the interrupt
+    GPIO_readSteps();
+    // turn off all leds
+    GPIO_setAllLEDs(0x0);
 }
 
 void GPIO_setAllLEDs(uint16_t state) {
@@ -189,9 +192,9 @@ void GPIO_setLED(uint8_t LED, uint8_t onOff) {
 }
 
 static uint16_t readInput(uint8_t addr) {
-    uint8_t data[2] = {0x34, 0x12};
+    uint8_t data[2] = {0x0, 0x0};
     transmit(addr, GPIO_REG_INPUT0, (void*)0, 0);
-    receive(addr, data, 2);
+    receive(addr, data, 1);
     return ((uint16_t)data[1] << 8) | data[0];
 }
 

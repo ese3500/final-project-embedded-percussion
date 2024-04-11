@@ -5,16 +5,13 @@
  * Author : Mia McMahill & Madison Hughes
  */ 
 #define F_CPU 16000000
-#define BAUD_RATE 9600
-#define BAUD_PRESCALER (((F_CPU / (BAUD_RATE * 16UL))) - 1)
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "lib/OPL2.h"
 #include "lib/ST7735.h"
 #include "lib/LCD_GFX.h"
 #include "lib/GPIO_expander.h"
-#include "lib/uart.h"
-#include <stdio.h>
 
 #define BD 0 // bass drum
 #define SN 1 // snare
@@ -23,29 +20,21 @@
 #define OH 4 // open hat
 #define CH 5 // closed hat
 
-int steps[6][16];
+#define NUM_INST 6
+
+int steps[6][16] = {
+    {1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+    {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+    {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}        
+};
 int tempo;
 int step;
 volatile int next_step;
 volatile int input_intrpt1;
 volatile int input_intrpt2;
-
-char string[25];
-
-void init(void) {
-    UART_init(BAUD_PRESCALER);
-    cli();
-    lcd_init();
-    OPL2_init();
-    GPIO_init();
-    // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
-    // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
-    sei();
-}
-
-void nextStep(void) {
-    
-}
 
 const unsigned char INSTRUMENT_PIANO1[11] PROGMEM = { 0x00, 0x33, 0x5A, 0xB2, 0x50, 0x00, 0x31, 0x00, 0xB1, 0xF5, 0x11 };
 const unsigned char INSTRUMENT_HONKTONK[11] PROGMEM = { 0x00, 0x34, 0x9B, 0xF3, 0x63, 0x01, 0x11, 0x00, 0x92, 0xF5, 0x11 };
@@ -57,51 +46,94 @@ const unsigned char INSTRUMENT_OBOE[11]     PROGMEM = { 0x00, 0x31, 0x18, 0x8F, 
 const unsigned char INSTRUMENT_SYNBRAS1[11] PROGMEM = { 0x00, 0x21, 0x17, 0x75, 0x35, 0x00, 0x22, 0x82, 0x84, 0x17, 0x0F };
 const unsigned char INSTRUMENT_FRHORN[11]   PROGMEM = { 0x00, 0x21, 0x1F, 0x79, 0x16, 0x00, 0xA2, 0x05, 0x71, 0x59, 0x09 };
 
-#define octave 3
-#define delayamnt 200
+ISR(PCINT3_vect) {
+    input_intrpt1 = 1;
+}
+
+void init(void) {
+    cli();
+    DDRE &= ~(1<<PORTE0);
+    PORTE |= (1<<PORTE0);
+    PCICR |= 1<<PCIE3;
+    // pe0 and pe1 pin change interrupts
+    PCMSK3 |= 1<<PCINT24;
+    //PCMSK3 |= 1<<PCINT25;
+    lcd_init();
+    OPL2_init();
+    GPIO_init();
+    // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
+    // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
+    sei();
+}
+
+void nextStep(void) {
+    // play all the notes for this step
+    for (int i = 0; i < NUM_INST; i++) {
+        if (steps[i][step]) {
+            playNote(i, 3, NOTE_C);
+        }
+    }
+    // TODO: change this to set to if the step is active, not set it to off
+    GPIO_setLED(step == 0 ? 15 : step - 1, 0);
+    GPIO_setLED(step, 1);
+    next_step = 0;
+    step = (step + 1) % 16;
+}
+
+void setUpInstruments(void) {
+    Instrument bass_drum = loadInstrument(INSTRUMENT_HONKTONK, 1);
+    setInstrument(BD, bass_drum, 1.0);
+    
+    Instrument snare_drum = loadInstrument(INSTRUMENT_HONKTONK, 1);
+    setInstrument(SN, snare_drum, 1.0);
+    
+    Instrument tom = loadInstrument(INSTRUMENT_HONKTONK, 1);
+    setInstrument(TM, tom, 1.0);
+    
+    Instrument cymbal = loadInstrument(INSTRUMENT_HONKTONK, 1);
+    setInstrument(CY, cymbal, 1.0);
+    
+    Instrument open_hat = loadInstrument(INSTRUMENT_HONKTONK, 1);
+    setInstrument(OH, open_hat, 1.0);
+    
+    Instrument closed_hat = loadInstrument(INSTRUMENT_HONKTONK, 1);
+    setInstrument(CH, closed_hat, 1.0);
+}
+
+void handle_step_input(void) {
+    uint16_t step_buttons = GPIO_readSteps();
+    next_step = 1;
+    input_intrpt1 = 0;
+}
+
+void handle_button_input(void) {
+    uint16_t buttons = GPIO_readButtons();
+    input_intrpt2 = 0;
+}
 
 int main(void) {
     init();
-    Instrument piano = loadInstrument(INSTRUMENT_HONKTONK, 1);
-    setInstrument(0, piano, 1.0);
+    setUpInstruments();
     LCD_setScreen(BLACK);
     LCD_drawString(22, 22, "Drum Machine", WHITE, BLACK);
     uint16_t leds = 0x0001;
     int i = 0;
     while (1) {
+        if (next_step) {
+          nextStep();
+          continue;
+        }
         //GPIO_setAllLEDs(leds << i);
         //_delay_ms(200);
         if (input_intrpt1) {
-            uint16_t steps = GPIO_readSteps();
-            sprintf(string, "%x\n", steps);
-            UART_putstring(string);
-            input_intrpt1 = 0;
+            handle_step_input();
         }            
-        GPIO_setLED(0, 1);
-        _delay_ms(500);
-        GPIO_setLED(0, 0);
-        GPIO_setLED(4, 1);
-        _delay_ms(500);
-        GPIO_setLED(4, 0);
-        //playNote(0, octave, NOTE_C);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave, NOTE_D);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave, NOTE_E);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave, NOTE_F);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave, NOTE_G);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave, NOTE_A);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave, NOTE_B);
-        //_delay_ms(delayamnt);
-        //playNote(0, octave + 1, NOTE_C);
-        //_delay_ms(delayamnt);
-        //if (next_step) {
-          //  nextStep();
-        //}
+        //GPIO_setLED(0, 1);
+        //_delay_ms(500);
+        //GPIO_setLED(0, 0);
+        //GPIO_setLED(4, 1);
+        //_delay_ms(500);
+        //GPIO_setLED(4, 0);
         //i = (i + 1) % 16; 
     }
 }
