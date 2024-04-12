@@ -146,7 +146,7 @@ void GPIO_init(void) {
     // change to 12 for 400k
     TWBR0 = 12;
     
-    #define USE_GPIO3 0
+    #define USE_GPIO3 1
     
     transmit(GPIO_ADDR1, 0x7F, b(1){0x0},1);
     transmit(GPIO_ADDR2, 0x7F, b(1){0x0},1);
@@ -156,8 +156,7 @@ void GPIO_init(void) {
     
     // set up gpio 1
     // set as outputs
-    transmit(GPIO_ADDR1, GPIO_REG_CONFIG0, b(1){0x0}, 1);
-    transmit(GPIO_ADDR1, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    transmit(GPIO_ADDR1, GPIO_REG_CONFIG0, b(2){0x0, 0x0}, 2);
     // set p1 to push-pull mode
     transmit(GPIO_ADDR1, GPIO_REG_GCR, b(1){0b00010000}, 1);
     // set p1 and p0 to led drive mode
@@ -174,21 +173,18 @@ void GPIO_init(void) {
     transmit(GPIO_ADDR3, GPIO_REG_GCR, b(1){0b00010000}, 1);
     #endif
     // set as inputs
-    transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(1){0xFF}, 1);
-    transmit(GPIO_ADDR2, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(2){0xFF, 0x0}, 2);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(1){0x0}, 1);
-    transmit(GPIO_ADDR3, GPIO_REG_CONFIG1, b(1){0x0}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(2){0x03, 0x0}, 2);
     #endif
     // enable interrupts
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(1){0x0}, 1);
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
+    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(2){0x00, 0xFF}, 2);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(1){0xFF}, 1);
-    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE1, b(1){0xFF}, 1);
+    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(2){0xFC, 0xFF}, 2);
     #endif
     // clear the interrupt
     GPIO_readSteps();
+    GPIO_readButtons();
     // turn off all leds
     GPIO_setAllLEDs(0x0);
 }
@@ -209,8 +205,8 @@ void GPIO_setAllLEDsArray(uint8_t* state) {
     transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
 }
 
-void GPIO_setLED(uint8_t LED, uint8_t onOff) {
-    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0 + LED, b(1){onOff ? LED_BRIGHTNESS : 0x0}, 1);
+void GPIO_setLED(uint8_t LED, uint8_t onOff, uint8_t bright) {
+    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0 + LED, b(1){onOff ? (bright ? 0x5F : LED_BRIGHTNESS) : 0x0}, 1);
 }
 
 static uint16_t readInput(uint8_t addr) {

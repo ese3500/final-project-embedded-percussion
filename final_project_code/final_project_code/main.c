@@ -43,6 +43,7 @@ const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
 int tempo = 96;
 int step = 0;
 int current_channel = BD;
+int stopped = 0;
 volatile int ignore_next = 0;
 volatile int next_step = 0;
 volatile int input_intrpt1 = 0;
@@ -68,24 +69,25 @@ const unsigned char DRUMINS_LO_TOMS[11]   PROGMEM = { 0x30, 0x06, 0x0A, 0xFA, 0x
 ISR(PCINT3_vect) {
     if (!(PINE & (1<<PINE0))) {
         input_intrpt1 = 1;
-    } else if (!(PINE & (1<<PINE1))) {
+    }
+    if (!(PINE & (1<<PINE1))) {
         input_intrpt2 = 1;
     }
 }
 
 
 ISR(TIMER3_COMPA_vect) {
-    next_step = 1;
+    next_step = 1 & !stopped;
 }
 
 void init(void) {
     cli();
-    DDRE &= ~(1<<PORTE0);
+    DDRE &= ~((1<<PORTE0) | (1<<PORTE1));
     //PORTE |= (1<<PORTE0);
     PCICR |= 1<<PCIE3;
     // pe0 and pe1 pin change interrupts
     PCMSK3 |= 1<<PCINT24;
-    //PCMSK3 |= 1<<PCINT25;
+    PCMSK3 |= 1<<PCINT25;
     lcd_init();
     OPL2_init();
     GPIO_init();
@@ -113,8 +115,8 @@ void nextStep(void) {
             playNote(i, octaves[i], NOTE_C);
         }
     }
-    GPIO_setLED(step == 0 ? 15 : step - 1, 0 | steps[current_channel][step - 1]);
-    GPIO_setLED(step, 1);
+    GPIO_setLED(step == 0 ? 15 : step - 1, 0 | steps[current_channel][step - 1], 0);
+    GPIO_setLED(step, 1, 1);
     next_step = 0;
     step = (step + 1) % 16;
 }
@@ -144,7 +146,7 @@ void handle_step_input(void) {
     for (int i = 0; i < 16; i++) {
         if ((step_buttons>>i) & 0x1) {
             steps[current_channel][i] = !steps[current_channel][i];
-            GPIO_setLED(i, steps[current_channel][i]);
+            GPIO_setLED(i, steps[current_channel][i], 0);
             break;
         }
     }
@@ -196,6 +198,7 @@ int main(void) {
     setUpInstruments();
     setupScreen();
     _delay_ms(200);
+    switchChannel(BD);
     while (1) {
         if (next_step) {
           nextStep();
