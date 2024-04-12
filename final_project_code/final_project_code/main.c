@@ -156,7 +156,7 @@ void handle_step_input(void) {
 void switchChannel(int new_channel) {
     LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
     LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
-    GPIO_setAllLEDsArray(steps[current_channel]);
+    GPIO_setAllLEDsArray(steps[new_channel]);
     current_channel = new_channel;
 }
 
@@ -207,7 +207,8 @@ int main(void) {
         if (input_intrpt1) {
             handle_step_input();
             continue;
-        } else if (input_intrpt2) {
+        } 
+        if (input_intrpt2) {
             handle_button_input();
             continue;
         }

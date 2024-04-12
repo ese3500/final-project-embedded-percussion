@@ -175,7 +175,7 @@ void GPIO_init(void) {
     // set as inputs
     transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(2){0xFF, 0x0}, 2);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(2){0x03, 0x0}, 2);
+    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(2){0xFF, 0x0}, 2);
     #endif
     // enable interrupts
     transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(2){0x00, 0xFF}, 2);
@@ -199,7 +199,7 @@ void GPIO_setAllLEDs(uint16_t state) {
 
 void GPIO_setAllLEDsArray(uint8_t* state) {
     uint8_t bytes[16];
-    for (int i = 0; i < 16; i++) {
+    for (int i = 15; i >= 0; i--) {
         bytes[i] = state[i] ? LED_BRIGHTNESS : 0;
     }
     transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
