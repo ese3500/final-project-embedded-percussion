@@ -137,10 +137,10 @@ void LCD_drawLine(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t color
 void LCD_drawBlock(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
     // now circles and blocks can be partially offscreen
-    x0 = CLAMP(x0, LCD_WIDTH, 0);
-    x1 = CLAMP(x1, LCD_WIDTH, 0);
-    y0 = CLAMP(y0, LCD_HEIGHT, 0);
-    y1 = CLAMP(y1, LCD_HEIGHT, 0);
+    x0 = CLAMP(x0, 0, LCD_WIDTH);
+    x1 = CLAMP(x1, 0, LCD_WIDTH);
+    y0 = CLAMP(y0, 0, LCD_HEIGHT);
+    y1 = CLAMP(y1, 0, LCD_HEIGHT);
     if (x0 == x1 || y0 == y1) {
         return;
     }

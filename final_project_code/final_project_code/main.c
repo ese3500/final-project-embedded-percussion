@@ -20,20 +20,30 @@
 #define OH 4 // open hat
 #define CH 5 // closed hat
 
+#define B_MASK 0x3F
+#define B_BD 0x1
+#define B_SN 0x2
+#define B_CL 0x4
+#define B_CY 0x8
+#define B_OH 0x10
+#define B_CH 0x20
+
 #define NUM_INST 6
 
-int steps[6][16] = {
-    {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
-    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
-    {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // CL
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // CY
-    {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0}, // OH
-    {0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
-};
+//uint8_t steps[6][16] = {
+    //{1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
+    //{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
+    //{0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // CL
+    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // CY
+    //{0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0}, // OH
+    //{0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
+//};
+uint8_t steps[6][16];
 const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
 int tempo = 96;
 int step = 0;
-int evenorodd = 0;
+int current_channel = BD;
+volatile int ignore_next = 0;
 volatile int next_step = 0;
 volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
@@ -56,7 +66,11 @@ const unsigned char DRUMINS_CLAP[11]      PROGMEM = { 0x30, 0x3E, 0x00, 0x9F, 0x
 const unsigned char DRUMINS_LO_TOMS[11]   PROGMEM = { 0x30, 0x06, 0x0A, 0xFA, 0x1F, 0x00, 0x11, 0x00, 0xF5, 0xF5, 0x0C };
 
 ISR(PCINT3_vect) {
-    input_intrpt1 = 1;
+    if (!(PINE & (1<<PINE0))) {
+        input_intrpt1 = 1;
+    } else if (!(PINE & (1<<PINE1))) {
+        input_intrpt2 = 1;
+    }
 }
 
 
@@ -80,7 +94,7 @@ void init(void) {
     TCCR3B |= (1<<CS30);
     TCCR3B |= (1<<CS31);
     TCCR3B &= ~(1<<CS32);
-    // set timer to ctc mode
+    // set timer to ctc mode, might change this to pcpwm for the sync jack
     TCCR3A &= ~(1<<WGM30);
     TCCR3A &= ~(1<<WGM31);
     TCCR3B |= (1<<WGM32);
@@ -89,8 +103,6 @@ void init(void) {
     OCR3A = F_CPU / ((float)(64 * tempo * 4) / 60.0);
     
     TIMSK3 |= (1<<OCIE3A);
-    // set up timer to do pulse at tempo * 4/60 and 1 pulse on another pin every 16 steps
-    // internally use these for the sequencer, but also send externally to a 3.5mm trs jack for sync signal
     sei();
 }
 
@@ -101,8 +113,7 @@ void nextStep(void) {
             playNote(i, octaves[i], NOTE_C);
         }
     }
-    // TODO: change this to set to if the step is active, not set it to off
-    GPIO_setLED(step == 0 ? 15 : step - 1, 0);
+    GPIO_setLED(step == 0 ? 15 : step - 1, 0 | steps[current_channel][step - 1]);
     GPIO_setLED(step, 1);
     next_step = 0;
     step = (step + 1) % 16;
@@ -130,19 +141,60 @@ void setUpInstruments(void) {
 
 void handle_step_input(void) {
     uint16_t step_buttons = GPIO_readSteps();
+    for (int i = 0; i < 16; i++) {
+        if ((step_buttons>>i) & 0x1) {
+            steps[current_channel][i] = !steps[current_channel][i];
+            GPIO_setLED(i, steps[current_channel][i]);
+            break;
+        }
+    }
     input_intrpt1 = 0;
+}
+
+void switchChannel(int new_channel) {
+    LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
+    LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
+    GPIO_setAllLEDsArray(steps[current_channel]);
+    current_channel = new_channel;
 }
 
 void handle_button_input(void) {
     uint16_t buttons = GPIO_readButtons();
+    switch (buttons & B_MASK) {
+        case B_BD:
+            switchChannel(BD);
+            break;
+        case B_SN:
+            switchChannel(SN);
+            break;
+        case B_CL:
+            switchChannel(CL);
+            break;
+        case B_CY:
+            switchChannel(CY);
+            break;
+        case B_OH:
+            switchChannel(OH);
+            break;
+        case B_CH:
+            switchChannel(CH);
+            break;
+    }
     input_intrpt2 = 0;
+}
+
+void setupScreen(void) {
+    LCD_setScreen(BLACK);
+    LCD_drawString(80, 5, "Drum Machine", WHITE, BLACK);
+    for (int i = 0; i < NUM_INST; i++) {
+        LCD_drawBlock(4 + i * 12, 4, 13 + i * 12, 13, WHITE);
+    }
 }
 
 int main(void) {
     init();
     setUpInstruments();
-    LCD_setScreen(BLACK);
-    LCD_drawString(22, 22, "Drum Machine", WHITE, BLACK);
+    setupScreen();
     _delay_ms(200);
     while (1) {
         if (next_step) {
@@ -150,8 +202,11 @@ int main(void) {
           continue;
         }
         if (input_intrpt1) {
-            next_step = 1;
             handle_step_input();
+            continue;
+        } else if (input_intrpt2) {
+            handle_button_input();
+            continue;
         }
     }
 }

@@ -201,6 +201,14 @@ void GPIO_setAllLEDs(uint16_t state) {
     transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
 }
 
+void GPIO_setAllLEDsArray(uint8_t* state) {
+    uint8_t bytes[16];
+    for (int i = 0; i < 16; i++) {
+        bytes[i] = state[i] ? LED_BRIGHTNESS : 0;
+    }
+    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
+}
+
 void GPIO_setLED(uint8_t LED, uint8_t onOff) {
     transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0 + LED, b(1){onOff ? LED_BRIGHTNESS : 0x0}, 1);
 }
