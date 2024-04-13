@@ -169,6 +169,7 @@ void handle_step_input(void) {
 }
 
 void switchChannel(int new_channel) {
+    // add drawblocks for the settings bars
     LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
     LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
     GPIO_setAllLEDsArray(steps[new_channel]);
@@ -216,6 +217,13 @@ void setupScreen(void) {
     for (int i = 0; i < NUM_INST; i++) {
         LCD_drawBlock(4 + i * 12, 4, 13 + i * 12, 13, WHITE);
     }
+    for (int i = 0; i < 4; i++) {
+        LCD_drawBlock(22 + i * 32, 36, 42 + i * 32, 96, WHITE);
+        LCD_drawBlock(24 + i * 32, 38, 40 + i * 32, 94, BLACK);
+        // delete next line
+        LCD_drawBlock(24 + i * 32, 40 + i * 10, 40 + i * 32, 94, WHITE);
+    }
+    // TODO: use logic similar to drawChar to draw quarter note for tempo display
 }
 
 int main(void) {
