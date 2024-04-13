@@ -27,23 +27,25 @@
 #define B_CY 0x8
 #define B_OH 0x10
 #define B_CH 0x20
+#define B_STRT 0x40
 
 #define NUM_INST 6
 
-//uint8_t steps[6][16] = {
-    //{1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
-    //{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
-    //{0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // CL
-    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // CY
-    //{0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0}, // OH
-    //{0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
-//};
-uint8_t steps[6][16];
+uint8_t steps[6][16] = {
+    {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
+    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
+    {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // CL
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // CY
+    {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0}, // OH
+    {0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
+};
+//uint8_t steps[6][16];
 const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
 int tempo = 96;
 int step = 0;
 int current_channel = BD;
 int stopped = 0;
+volatile int send_start = 0;
 volatile int ignore_next = 0;
 volatile int next_step = 0;
 volatile int input_intrpt1 = 0;
@@ -77,17 +79,29 @@ ISR(PCINT3_vect) {
 
 
 ISR(TIMER3_COMPA_vect) {
-    next_step = 1 & !stopped;
+    next_step = !stopped;
+    PORTD |= (!stopped)<<PORTD3;
+    PORTD |= (send_start<<PORTD2);
+}
+
+ISR(TIMER3_COMPB_vect) {
+    PORTD &= ~((1<<PORTD3) | (1<<PORTD2));
+    send_start = 0;
 }
 
 void init(void) {
     cli();
-    DDRE &= ~((1<<PORTE0) | (1<<PORTE1));
+    DDRE &= ~((1<<DDE0) | (1<<DDE1));
     //PORTE |= (1<<PORTE0);
     PCICR |= 1<<PCIE3;
     // pe0 and pe1 pin change interrupts
     PCMSK3 |= 1<<PCINT24;
     PCMSK3 |= 1<<PCINT25;
+    // sync jack setup
+    // PD3 is tip  - clock
+    // PD2 is ring - start/stop
+    DDRD |= (1<<DDD2) | (1<<DDD3);
+    PORTD &= ~((1<<PORTD2) | (1<<PORTD3));
     lcd_init();
     OPL2_init();
     GPIO_init();
@@ -96,15 +110,16 @@ void init(void) {
     TCCR3B |= (1<<CS30);
     TCCR3B |= (1<<CS31);
     TCCR3B &= ~(1<<CS32);
-    // set timer to ctc mode, might change this to pcpwm for the sync jack
-    TCCR3A &= ~(1<<WGM30);
-    TCCR3A &= ~(1<<WGM31);
+    // set timer to fast pwm mode
+    TCCR3A |= (1<<WGM30);
+    TCCR3A |= (1<<WGM31);
     TCCR3B |= (1<<WGM32);
-    TCCR3B &= ~(1<<WGM33);
+    TCCR3B |= (1<<WGM33);
     
     OCR3A = F_CPU / ((float)(64 * tempo * 4) / 60.0);
+    OCR3B = OCR3A / 2.0;
     
-    TIMSK3 |= (1<<OCIE3A);
+    TIMSK3 |= (1<<OCIE3A) | (1<<OCIE3B);
     sei();
 }
 
@@ -160,6 +175,13 @@ void switchChannel(int new_channel) {
     current_channel = new_channel;
 }
 
+void pressStart(void) {
+    if (stopped) {
+        send_start = 1;
+    }
+    stopped = !stopped;
+}
+
 void handle_button_input(void) {
     uint16_t buttons = GPIO_readButtons();
     switch (buttons & B_MASK) {
@@ -180,6 +202,9 @@ void handle_button_input(void) {
             break;
         case B_CH:
             switchChannel(CH);
+            break;
+        case B_STRT:
+            pressStart();
             break;
     }
     input_intrpt2 = 0;
