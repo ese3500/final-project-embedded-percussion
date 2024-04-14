@@ -34,7 +34,7 @@
 #define LED_BRIGHTNESS 0x0F
 
 static uint16_t start(void) {
-    TWCR0 =  (1<<TWINT) | (1<<TWEN) | (1<<TWSTA);
+    TWCR0 = (1<<TWINT) | (1<<TWEN) | (1<<TWSTA);
     while (!(TWCR0 & (1<<TWINT)));
     if (TW_STATUS != TW_START) {
         return TW_STATUS;

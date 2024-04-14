@@ -20,7 +20,12 @@
 #define OH 4 // open hat
 #define CH 5 // closed hat
 
-#define B_MASK 0x3F
+#define PAR_A 0
+#define PAR_B 1
+#define TUN   2
+#define VOL   3
+
+#define B_MASK 0x7F
 #define B_BD 0x1
 #define B_SN 0x2
 #define B_CL 0x4
@@ -45,6 +50,7 @@ int tempo = 96;
 int step = 0;
 int current_channel = BD;
 int stopped = 0;
+int select_mode = 0;
 volatile int send_start = 0;
 volatile int ignore_next = 0;
 volatile int next_step = 0;
@@ -156,7 +162,7 @@ void setUpInstruments(void) {
     setInstrument(CH, closed_hat, 1.0);
 }
 
-void handle_step_input(void) {
+void handleStepInput(void) {
     uint16_t step_buttons = GPIO_readSteps();
     for (int i = 0; i < 16; i++) {
         if ((step_buttons>>i) & 0x1) {
@@ -183,7 +189,7 @@ void pressStart(void) {
     stopped = !stopped;
 }
 
-void handle_button_input(void) {
+void handleButtonInput(void) {
     uint16_t buttons = GPIO_readButtons();
     switch (buttons & B_MASK) {
         case B_BD:
@@ -211,38 +217,53 @@ void handle_button_input(void) {
     input_intrpt2 = 0;
 }
 
-void setupScreen(void) {
+void setUpScreen(void) {
     LCD_setScreen(BLACK);
     LCD_drawString(80, 5, "Drum Machine", WHITE, BLACK);
     for (int i = 0; i < NUM_INST; i++) {
         LCD_drawBlock(4 + i * 12, 4, 13 + i * 12, 13, WHITE);
     }
+    char* labels[] = { " A ", " B ", "TUN", "VOL" };
     for (int i = 0; i < 4; i++) {
         LCD_drawBlock(22 + i * 32, 36, 42 + i * 32, 96, WHITE);
         LCD_drawBlock(24 + i * 32, 38, 40 + i * 32, 94, BLACK);
+        LCD_drawString(24 + i * 32, 100, labels[i], WHITE, BLACK);
         // delete next line
-        LCD_drawBlock(24 + i * 32, 40 + i * 10, 40 + i * 32, 94, WHITE);
+        LCD_drawBlock(23 + i * 32, 40 + i * 10, 40 + i * 32, 94, WHITE);
     }
     // TODO: use logic similar to drawChar to draw quarter note for tempo display
+}
+
+void deselectSetting(void) {
+    
+}
+
+void selectSetting(int setting) {
+    
+}
+
+void handleEncoderInput(void) {
+    
 }
 
 int main(void) {
     init();
     setUpInstruments();
-    setupScreen();
+    setUpScreen();
     _delay_ms(200);
     switchChannel(BD);
+    deselectSetting();
     while (1) {
         if (next_step) {
-          nextStep();
-          continue;
+            nextStep();
+            continue;
         }
         if (input_intrpt1) {
-            handle_step_input();
+            handleStepInput();
             continue;
         } 
         if (input_intrpt2) {
-            handle_button_input();
+            handleButtonInput();
             continue;
         }
     }
