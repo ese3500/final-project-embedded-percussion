@@ -63,6 +63,7 @@ Instrument loadInstrument(const unsigned char *instrumentData, int fromProgmem);
 void setInstrument(byte channel, Instrument instrument, float volume);
 void setBlock(byte channel, byte block);
 void playNote(byte channel, byte octave, byte note);
+void setChannelVolume(byte channel, byte volume);
 
 
 #endif /* OPL2_H_ */

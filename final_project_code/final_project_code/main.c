@@ -8,6 +8,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 #include "lib/OPL2.h"
 #include "lib/ST7735.h"
 #include "lib/LCD_GFX.h"
@@ -24,15 +25,22 @@
 #define PAR_B 1
 #define TUN   2
 #define VOL   3
+#define TEMPO 4
 
 #define B_MASK 0x7F
-#define B_BD 0x1
-#define B_SN 0x2
-#define B_CL 0x4
-#define B_CY 0x8
-#define B_OH 0x10
-#define B_CH 0x20
+#define B_BD   0x1
+#define B_SN   0x2
+#define B_CL   0x4
+#define B_CY   0x8
+#define B_OH   0x10
+#define B_CH   0x20
 #define B_STRT 0x40
+
+// TODO: find correct values for these
+#define ENC_MASK  0x0
+#define ENC_UP    0x1
+#define ENC_DOWN  0x2
+#define ENC_PRESS 0x3
 
 #define NUM_INST 6
 
@@ -45,17 +53,29 @@ uint8_t steps[6][16] = {
     {0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
 };
 //uint8_t steps[6][16];
+uint8_t settings[6][4] = {
+    // A,  B,  TUN, VOL
+    {127, 127, 127, 255},
+    {127, 127, 127, 255},
+    {127, 127, 127, 255},
+    {127, 127, 127, 255},
+    {127, 127, 127, 255},
+    {127, 127, 127, 255}
+};
 const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
 int tempo = 96;
+char tempoStr[5];
 int step = 0;
 int current_channel = BD;
 int stopped = 0;
-int select_mode = 0;
+int select_mode = 1;
+int current_setting = 0;
 volatile int send_start = 0;
 volatile int ignore_next = 0;
 volatile int next_step = 0;
 volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
+volatile int encoder_intrpt = 0;
 
 const unsigned char INSTRUMENT_PIANO1[11] PROGMEM = { 0x00, 0x33, 0x5A, 0xB2, 0x50, 0x00, 0x31, 0x00, 0xB1, 0xF5, 0x11 };
 const unsigned char INSTRUMENT_HONKTONK[11] PROGMEM = { 0x00, 0x34, 0x9B, 0xF3, 0x63, 0x01, 0x11, 0x00, 0x92, 0xF5, 0x11 };
@@ -231,19 +251,103 @@ void setUpScreen(void) {
         // delete next line
         LCD_drawBlock(23 + i * 32, 40 + i * 10, 40 + i * 32, 94, WHITE);
     }
-    // TODO: use logic similar to drawChar to draw quarter note for tempo display
+    const uint8_t qNote[] = {
+        0b00000100,
+        0b00000100,
+        0b00000100,
+        0b00000100,
+        0b00000100,
+        0b00000100,
+        0b00111100,
+        0b01111100,
+        0b01111100,
+        0b00111000,
+    };
+    int x = 112, y = 18;
+    for(int i = 0; i < 10; i++){
+        uint8_t pixels = qNote[i]; //Go through the list of pixels
+        for(int j = 0; j < 8; j++){
+            if (((pixels<<j) & 0x80)){
+                LCD_drawPixel(x+j,y+i,WHITE);
+            }
+        }
+   }
+   LCD_drawChar(x + 9, y + 2, '=', WHITE, BLACK);
+   sprintf(tempoStr, "%d", tempo);
+   LCD_drawString(x + 17, y + 2, tempoStr, WHITE, BLACK);
 }
 
-void deselectSetting(void) {
-    
+void toggleSelectMode() {
+    if (current_setting == TEMPO) {
+        LCD_drawBlock(151, 21, 156, 26, select_mode ? BLACK : WHITE);
+    } else {
+        LCD_drawBlock(23 + current_setting * 32, 113, 41 + current_setting * 32, 115, select_mode ? BLACK : WHITE);
+    } 
+    select_mode = !select_mode;
 }
 
-void selectSetting(int setting) {
-    
+void modifySetting(int change) {
+    uint8_t* setting;
+    if (current_setting == TEMPO) {
+        tempo = CLAMP(tempo + change, 60, 300);
+    } else {
+        setting = &(settings[current_channel][current_setting]);
+        *setting = CLAMP(*setting + change, 0, 255);
+    }    
+    switch(current_setting) {
+        case PAR_A:
+            break;
+        case PAR_B:
+            break;
+        case TUN:
+            break;
+        case VOL:
+            setChannelVolume(current_setting, *setting);
+            break;
+        case TEMPO:
+            sprintf(tempoStr, "%d", tempo);
+            LCD_drawString(129, 20, tempoStr, WHITE, BLACK);
+            OCR3A = F_CPU / ((float)(64 * tempo * 4) / 60.0);
+            OCR3B = OCR3A / 2.0;
+            break;
+    }
+}
+
+void selectSetting(int new_setting) {
+    for (int i = 0; i < 4; i++) {
+        LCD_drawBlock(22 + i * 32, 112, 42 + i * 32, 116, BLACK);
+    }
+    LCD_drawBlock(150, 20, 157, 27, BLACK);
+    if (new_setting == TEMPO) {
+        LCD_drawBlock(150, 20, 157, 27, WHITE);
+    } else {
+        LCD_drawBlock(22 + new_setting * 32, 112, 42 + new_setting * 32, 116, WHITE);
+    }
+    current_setting = new_setting;
 }
 
 void handleEncoderInput(void) {
-    
+    uint8_t encoder_input = GPIO_readEncoder();
+    switch(encoder_input & ENC_MASK) {
+        case ENC_UP:
+            if (select_mode) {
+                selectSetting(CLAMP(current_setting + 1, 0, 4));
+            } else {
+                modifySetting(1);
+            }
+            break;
+        case ENC_DOWN:
+            if (select_mode) {
+                selectSetting(CLAMP(current_setting - 1, 0, 4));
+            } else {
+                modifySetting(-1);
+            }
+            break;
+        case ENC_PRESS:
+            toggleSelectMode();
+            break;
+    }
+    encoder_intrpt = 0;
 }
 
 int main(void) {
@@ -252,7 +356,7 @@ int main(void) {
     setUpScreen();
     _delay_ms(200);
     switchChannel(BD);
-    deselectSetting();
+    selectSetting(PAR_A);
     while (1) {
         if (next_step) {
             nextStep();
@@ -264,6 +368,10 @@ int main(void) {
         } 
         if (input_intrpt2) {
             handleButtonInput();
+            continue;
+        }
+        if (encoder_intrpt) {
+            handleEncoderInput();
             continue;
         }
     }

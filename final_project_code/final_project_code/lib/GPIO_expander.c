@@ -15,6 +15,7 @@
 #define GPIO_ADDR1 0x59  // GPIO expander for LEDs
 #define GPIO_ADDR2 0x5A  // GPIO expander for step buttons
 #define GPIO_ADDR3 0x58  // GPIO expander for any other buttons
+#define GPIO_ADDRENC 0x36 // rotary encoder
 
 #define GPIO_REG_CHIPID 0x10     ///< Register for hardcode chip ID
 #define GPIO_REG_SOFTRESET 0x7F  ///< Register for soft resetting
@@ -222,4 +223,8 @@ uint16_t GPIO_readButtons(void) {
 
 uint16_t GPIO_readSteps(void) {
     return readInput(GPIO_ADDR2);
+}
+
+uint8_t GPIO_readEncoder(void) {
+    return 0;
 }
