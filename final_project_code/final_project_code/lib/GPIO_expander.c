@@ -185,12 +185,12 @@ void GPIO_init(void) {
     transmit(GPIO_ADDR3, b(2){GPIO_REG_GCR, 0b00010000}, 2);
     #endif
     // set as inputs
-    transmit(GPIO_ADDR2, b(3){GPIO_REG_CONFIG0, 0xFF, 0x0}, 3);
+    transmit(GPIO_ADDR2, b(3){GPIO_REG_CONFIG0, 0xFF, 0xFF}, 3);
     #if USE_GPIO3
     transmit(GPIO_ADDR3, b(3){GPIO_REG_CONFIG0, 0xFF, 0x0}, 3);
     #endif
     // enable interrupts
-    transmit(GPIO_ADDR2, b(3){GPIO_REG_INTENABLE0, 0x00, 0xFF}, 3);
+    transmit(GPIO_ADDR2, b(3){GPIO_REG_INTENABLE0, 0x0, 0x0}, 3);
     #if USE_GPIO3
     transmit(GPIO_ADDR3, b(3){GPIO_REG_INTENABLE0, 0xFC, 0xFF}, 3);
     #endif
@@ -231,7 +231,7 @@ void GPIO_setAllLEDs(uint16_t state) {
     uint8_t bytes[17];
     bytes[0] = GPIO_REG_LED_DIM0;
     for (int i = 1; i < 17; i++) {
-        bytes[i] = (state >> i) & 0x1 ? LED_BRIGHTNESS : 0;
+        bytes[i] = (state >> (i - 1)) & 0x1 ? LED_BRIGHTNESS : 0;
     }
     transmit(GPIO_ADDR1, bytes, 17);
 }
@@ -239,8 +239,8 @@ void GPIO_setAllLEDs(uint16_t state) {
 void GPIO_setAllLEDsArray(uint8_t* state) {
     uint8_t bytes[17];
     bytes[0] = GPIO_REG_LED_DIM0;
-    for (int i = 16; i >= 1; i--) {
-        bytes[i] = state[i] ? LED_BRIGHTNESS : 0;
+    for (int i = 1; i < 17; i++) {
+        bytes[i] = state[i - 1] ? LED_BRIGHTNESS : 0;
     }
     transmit(GPIO_ADDR1, bytes, 17);
 }
@@ -253,6 +253,8 @@ static uint16_t readInput(uint8_t addr) {
     uint8_t data[2] = {0x0, 0x0};
     transmit(addr, b(1){GPIO_REG_INPUT0}, 1);
     receive(addr, data, 1);
+    transmit(addr, b(1){GPIO_REG_INPUT1}, 1);
+    receive(addr, &data[1], 1);
     return ((uint16_t)data[1] << 8) | data[0];
 }
 
