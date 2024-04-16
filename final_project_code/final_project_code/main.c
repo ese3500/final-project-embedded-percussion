@@ -37,10 +37,10 @@
 #define B_STRT 0x40
 
 // TODO: find correct values for these
-#define ENC_MASK  0x0
+#define ENC_MASK  0x07
 #define ENC_UP    0x1
 #define ENC_DOWN  0x2
-#define ENC_PRESS 0x3
+#define ENC_PRESS 0x4
 
 #define NUM_INST 6
 
