@@ -8,6 +8,7 @@
 #define TWSR TWSR0 // needed because util/twi.h hasnt been updated for the 328pb
 
 #include "GPIO_expander.h"
+#include <util/delay.h>
 #include <util/twi.h>
 
 #define b(len) (uint8_t[len])
@@ -15,7 +16,7 @@
 #define GPIO_ADDR1 0x59  // GPIO expander for LEDs
 #define GPIO_ADDR2 0x5A  // GPIO expander for step buttons
 #define GPIO_ADDR3 0x58  // GPIO expander for any other buttons
-#define GPIO_ADDRENC 0x36 // rotary encoder
+#define ENC_ADDR   0x36 // rotary encoder
 
 #define GPIO_REG_CHIPID 0x10     ///< Register for hardcode chip ID
 #define GPIO_REG_SOFTRESET 0x7F  ///< Register for soft resetting
@@ -32,7 +33,21 @@
 #define GPIO_REG_LEDMODE1 0x13   ///< Register for configuring P1 const current
 #define GPIO_REG_LED_DIM0 0x20
 
+#define ENC_REG_STATUS    0x00
+#define ENC_REG_RESET     0x7F
+#define ENC_REG_ENCODER   0x11
+#define ENC_REG_ENCINTSET 0x10
+#define ENC_REG_SWITCH    0x01
+#define ENC_REG_SWINTSET  0x08
+#define ENC_REG_SWBLKCLR  0x03
+#define ENC_REG_SWBLKSET  0x02
+#define ENC_REG_SWBLK     0x04
+#define ENC_REG_SWPULLUP  0x0B
+#define ENC_REG_POS       0x30
+
 #define LED_BRIGHTNESS 0x0F
+
+static int32_t enc_position;
 
 static uint16_t start(void) {
     TWCR0 = (1<<TWINT) | (1<<TWEN) | (1<<TWSTA);
@@ -86,7 +101,7 @@ static uint8_t receive_byte(int read_ack) {
     return TWDR0;
 }
 
-static uint16_t transmit(uint8_t slave_addr, uint8_t reg, uint8_t* data, int num_bytes) {
+static uint16_t transmit(uint8_t slave_addr, uint8_t* data, int num_bytes) {
     uint16_t error;
     
     error = start();
@@ -95,11 +110,6 @@ static uint16_t transmit(uint8_t slave_addr, uint8_t reg, uint8_t* data, int num
     }
     
     error = send_addr((slave_addr << 1) | TW_WRITE);
-    if (error) {
-        return error;
-    }
-    
-    error = send_byte(reg);
     if (error) {
         return error;
     }
@@ -149,70 +159,99 @@ void GPIO_init(void) {
     
     #define USE_GPIO3 1
     
-    transmit(GPIO_ADDR1, 0x7F, b(1){0x0},1);
-    transmit(GPIO_ADDR2, 0x7F, b(1){0x0},1);
+    transmit(GPIO_ADDR1, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
+    transmit(GPIO_ADDR2, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, 0x7F, b(1){0x0},1);
+    transmit(GPIO_ADDR3, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
     #endif
     
     // set up gpio 1
     // set as outputs
-    transmit(GPIO_ADDR1, GPIO_REG_CONFIG0, b(2){0x0, 0x0}, 2);
+    transmit(GPIO_ADDR1, b(3){GPIO_REG_CONFIG0, 0x0, 0x0}, 3);
     // set p1 to push-pull mode
-    transmit(GPIO_ADDR1, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    transmit(GPIO_ADDR1, b(2){GPIO_REG_GCR, 0b00010000}, 2);
     // set p1 and p0 to led drive mode
-    transmit(GPIO_ADDR1, GPIO_REG_LEDMODE0, b(2){0x0, 0x0}, 2);
-    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, b(16){
+    transmit(GPIO_ADDR1, b(3){GPIO_REG_LEDMODE0, 0x0, 0x0}, 3);
+    transmit(GPIO_ADDR1, b(17){
+        GPIO_REG_LED_DIM0,
         0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0,
-        0x0, 0x0, 0x0, 0x0}, 16);
+        0x0, 0x0, 0x0, 0x0}, 17);
     // set up gpio 2 and 3
     // set push-pull mode
-    transmit(GPIO_ADDR2, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    transmit(GPIO_ADDR2, b(2){GPIO_REG_GCR, 0b00010000}, 2);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, GPIO_REG_GCR, b(1){0b00010000}, 1);
+    transmit(GPIO_ADDR3, b(2){GPIO_REG_GCR, 0b00010000}, 2);
     #endif
     // set as inputs
-    transmit(GPIO_ADDR2, GPIO_REG_CONFIG0, b(2){0xFF, 0x0}, 2);
+    transmit(GPIO_ADDR2, b(3){GPIO_REG_CONFIG0, 0xFF, 0x0}, 3);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, GPIO_REG_CONFIG0, b(2){0xFF, 0x0}, 2);
+    transmit(GPIO_ADDR3, b(3){GPIO_REG_CONFIG0, 0xFF, 0x0}, 3);
     #endif
     // enable interrupts
-    transmit(GPIO_ADDR2, GPIO_REG_INTENABLE0, b(2){0x00, 0xFF}, 2);
+    transmit(GPIO_ADDR2, b(3){GPIO_REG_INTENABLE0, 0x00, 0xFF}, 3);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, GPIO_REG_INTENABLE0, b(2){0xFC, 0xFF}, 2);
+    transmit(GPIO_ADDR3, b(3){GPIO_REG_INTENABLE0, 0xFC, 0xFF}, 3);
     #endif
     // clear the interrupt
     GPIO_readSteps();
     GPIO_readButtons();
     // turn off all leds
     GPIO_setAllLEDs(0x0);
+    
+    #define USE_ENC 0
+
+    #if USE_ENC
+    transmit(ENC_ADDR, b(3){ENC_REG_STATUS, ENC_REG_RESET, 0xFF}, 3);
+    transmit(ENC_ADDR, b(3){ENC_REG_ENCODER, ENC_REG_ENCINTSET, 0x1}, 3);
+    uint32_t pins = (uint32_t)1 << 24; // switch on pin 24
+    uint8_t cmd[] = {
+        ENC_REG_SWITCH, ENC_REG_SWINTSET,
+        (uint8_t)(pins >> 24), (uint8_t)(pins >> 16), (uint8_t)(pins >> 8), (uint8_t)pins
+    };
+    transmit(ENC_ADDR, cmd, 6);
+    cmd[1] = ENC_REG_SWBLKCLR;
+    transmit(ENC_ADDR, cmd, 6);
+    cmd[1] = ENC_REG_SWPULLUP;
+    transmit(ENC_ADDR, cmd, 6);
+    cmd[1] = ENC_REG_SWBLKSET;
+    transmit(ENC_ADDR, cmd, 6);
+    
+    uint8_t data[4];
+    transmit(ENC_ADDR, b(2){ENC_REG_ENCODER, ENC_REG_POS}, 2);
+    _delay_us(20);
+    receive(ENC_ADDR, data, 4);
+    enc_position = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
+    enc_position = -enc_position;
+    #endif
 }
 
 void GPIO_setAllLEDs(uint16_t state) {
-    uint8_t bytes[16];
-    for (int i = 0; i < 16; i++) {
+    uint8_t bytes[17];
+    bytes[0] = GPIO_REG_LED_DIM0;
+    for (int i = 1; i < 17; i++) {
         bytes[i] = (state >> i) & 0x1 ? LED_BRIGHTNESS : 0;
     }
-    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
+    transmit(GPIO_ADDR1, bytes, 17);
 }
 
 void GPIO_setAllLEDsArray(uint8_t* state) {
-    uint8_t bytes[16];
-    for (int i = 15; i >= 0; i--) {
+    uint8_t bytes[17];
+    bytes[0] = GPIO_REG_LED_DIM0;
+    for (int i = 16; i >= 1; i--) {
         bytes[i] = state[i] ? LED_BRIGHTNESS : 0;
     }
-    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0, bytes, 16);
+    transmit(GPIO_ADDR1, bytes, 17);
 }
 
 void GPIO_setLED(uint8_t LED, uint8_t onOff, uint8_t bright) {
-    transmit(GPIO_ADDR1, GPIO_REG_LED_DIM0 + LED, b(1){onOff ? (bright ? 0x5F : LED_BRIGHTNESS) : 0x0}, 1);
+    transmit(GPIO_ADDR1, b(2){GPIO_REG_LED_DIM0 + LED, onOff ? (bright ? 0x5F : LED_BRIGHTNESS) : 0x0}, 2);
 }
 
 static uint16_t readInput(uint8_t addr) {
     uint8_t data[2] = {0x0, 0x0};
-    transmit(addr, GPIO_REG_INPUT0, (void*)0, 0);
+    transmit(addr, b(1){GPIO_REG_INPUT0}, 1);
     receive(addr, data, 1);
     return ((uint16_t)data[1] << 8) | data[0];
 }
@@ -226,5 +265,20 @@ uint16_t GPIO_readSteps(void) {
 }
 
 uint8_t GPIO_readEncoder(void) {
-    return 0;
+    uint8_t data[4];
+    transmit(ENC_ADDR, b(2){ENC_REG_ENCODER, ENC_REG_POS}, 2);
+    _delay_us(20);
+    receive(ENC_ADDR, data, 4);
+    int32_t pos = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
+    pos = -pos;
+    uint8_t up, down, push;
+    up = pos > enc_position ? 0x01 : 0x0;
+    down = pos < enc_position ? 0x02 : 0x0;
+    enc_position = pos;
+    transmit(ENC_ADDR, b(2){ENC_REG_SWITCH, ENC_REG_SWBLK}, 2);
+    _delay_us(20);
+    receive(ENC_ADDR, data, 4);
+    uint32_t pin_states = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
+    push = pin_states & ((uint32_t)1<<24) ? 0x04 : 0x0;
+    return up | down | push;
 }

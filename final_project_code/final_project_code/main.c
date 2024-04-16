@@ -38,9 +38,9 @@
 
 // TODO: find correct values for these
 #define ENC_MASK  0x07
-#define ENC_UP    0x1
-#define ENC_DOWN  0x2
-#define ENC_PRESS 0x4
+#define ENC_UP    0x01
+#define ENC_DOWN  0x02
+#define ENC_PRESS 0x04
 
 #define NUM_INST 6
 
