@@ -63,7 +63,7 @@ uint8_t settings[6][4] = {
     {127, 127, 127, 255}
 };
 const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
-int tempo = 96;
+uint16_t tempo = 96;
 char tempoStr[5];
 int step = 0;
 int current_channel = BD;
@@ -142,7 +142,7 @@ void init(void) {
     TCCR3B |= (1<<WGM32);
     TCCR3B |= (1<<WGM33);
     
-    OCR3A = F_CPU / ((float)(64 * tempo * 4) / 60.0);
+    OCR3A = F_CPU / ((float)(64 * (uint32_t)tempo * 4) / 60.0);
     OCR3B = OCR3A / 2.0;
     
     TIMSK3 |= (1<<OCIE3A) | (1<<OCIE3B);
@@ -309,7 +309,7 @@ void modifySetting(int change) {
         case TEMPO:
             sprintf(tempoStr, "%d", tempo);
             LCD_drawString(129, 20, tempoStr, WHITE, BLACK);
-            OCR3A = F_CPU / ((float)(64 * tempo * 4) / 60.0);
+            OCR3A = F_CPU / ((float)(64 * (uint32_t)tempo * 4) / 60.0);
             OCR3B = OCR3A / 2.0;
             break;
     }
@@ -359,6 +359,8 @@ int main(void) {
     _delay_ms(200);
     switchChannel(BD);
     selectSetting(PAR_A);
+    selectSetting(TEMPO);
+    toggleSelectMode();
     while (1) {
         if (next_step) {
             nextStep();
