@@ -647,7 +647,7 @@ void setDrumInstrument(Instrument instrument, byte drumType, float volume) {
     (instrument.isAdditiveSynth ? 0x01 : 0x00));
 }
 
-Instrument loadInstrument(const unsigned char *instrumentData, int fromProgmem) {
+Instrument loadInstrument(const uint8_t *instrumentData, int fromProgmem) {
     Instrument instrument = createInstrument();
 
     byte data[11];

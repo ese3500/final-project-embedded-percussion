@@ -16,10 +16,10 @@
 
 #define BD 0 // bass drum
 #define SN 1 // snare
-#define CL 2 // clap
-#define CY 3 // cymbal
-#define OH 4 // open hat
-#define CH 5 // closed hat
+#define LT 2 // low tom
+#define HT 3 // hi tom
+#define CH 4 // closed hat
+#define OH 5 // open hat
 
 #define PAR_A 0
 #define PAR_B 1
@@ -30,13 +30,12 @@
 #define B_MASK 0x7F
 #define B_BD   0x01
 #define B_SN   0x02
-#define B_CL   0x04
-#define B_CY   0x08
-#define B_OH   0x10
-#define B_CH   0x20
+#define B_LT   0x04
+#define B_HT   0x08
+#define B_CH   0x10
+#define B_OH   0x20
 #define B_STRT 0x40
 
-// TODO: find correct values for these
 #define ENC_MASK  0x07
 #define ENC_UP    0x01
 #define ENC_DOWN  0x02
@@ -47,10 +46,10 @@
 uint8_t steps[6][16] = {
     {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
     {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
-    {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0}, // CL
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // CY
-    {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0}, // OH
-    {0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}  // CH 
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // LT
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0}, // HT
+    {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0}, // CH
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}  // OH 
 };
 //uint8_t steps[6][16];
 uint8_t settings[6][4] = {
@@ -62,7 +61,8 @@ uint8_t settings[6][4] = {
     {127, 127, 127, 255},
     {127, 127, 127, 255}
 };
-const uint8_t octaves[6] = {1, 2, 3, 2, 2, 2};
+const uint8_t octaves[6] = {3, 3, 4, 4, 3, 3};
+const uint8_t notes[6] = {NOTE_C, NOTE_C, NOTE_C, NOTE_E, NOTE_E, NOTE_E};
 uint16_t tempo = 96;
 char tempoStr[5];
 int step = 0;
@@ -77,22 +77,11 @@ volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
 volatile int encoder_intrpt = 0;
 
-const unsigned char INSTRUMENT_PIANO1[11] PROGMEM = { 0x00, 0x33, 0x5A, 0xB2, 0x50, 0x00, 0x31, 0x00, 0xB1, 0xF5, 0x11 };
-const unsigned char INSTRUMENT_HONKTONK[11] PROGMEM = { 0x00, 0x34, 0x9B, 0xF3, 0x63, 0x01, 0x11, 0x00, 0x92, 0xF5, 0x11 };
-const unsigned char INSTRUMENT_ACOUBASS[11] PROGMEM = { 0x00, 0x21, 0x13, 0xAB, 0x46, 0x00, 0x21, 0x00, 0x93, 0xF7, 0x01 };
-const unsigned char INSTRUMENT_WHISTLE[11]  PROGMEM = { 0x00, 0xE1, 0x3F, 0x9F, 0x09, 0x00, 0xE1, 0x00, 0x6F, 0x08, 0x00 };
-const unsigned char INSTRUMENT_BRASS1[11]   PROGMEM = { 0x00, 0x21, 0x19, 0x87, 0x16, 0x00, 0x21, 0x03, 0x82, 0x39, 0x0F };
-const unsigned char INSTRUMENT_SYNBRAS2[11] PROGMEM = { 0x00, 0x21, 0x22, 0x62, 0x58, 0x00, 0x21, 0x02, 0x72, 0x16, 0x0F };
-const unsigned char INSTRUMENT_OBOE[11]     PROGMEM = { 0x00, 0x31, 0x18, 0x8F, 0x05, 0x00, 0x32, 0x01, 0x73, 0x08, 0x01 };
-const unsigned char INSTRUMENT_SYNBRAS1[11] PROGMEM = { 0x00, 0x21, 0x17, 0x75, 0x35, 0x00, 0x22, 0x82, 0x84, 0x17, 0x0F };
-const unsigned char INSTRUMENT_FRHORN[11]   PROGMEM = { 0x00, 0x21, 0x1F, 0x79, 0x16, 0x00, 0xA2, 0x05, 0x71, 0x59, 0x09 };
-const unsigned char DRUMINS_BASS_DR1[11]  PROGMEM = { 0x30, 0x01, 0x07, 0xFA, 0xFD, 0x00, 0x01, 0x00, 0xF6, 0x47, 0x05 };
-const unsigned char DRUMINS_SNARE_AC[11]  PROGMEM = { 0x30, 0x24, 0x00, 0xFF, 0x0F, 0x00, 0x02, 0x00, 0xF7, 0xA9, 0x0F };
-const unsigned char DRUMINS_SNARE_EL[11]  PROGMEM = { 0x30, 0x24, 0x00, 0xFF, 0x0F, 0x00, 0x02, 0x00, 0xF7, 0xA9, 0x0F };
-const unsigned char DRUMINS_HIHAT_CL[11]  PROGMEM = { 0x30, 0x2C, 0x00, 0xF2, 0xFE, 0x00, 0x02, 0x06, 0xB8, 0xD8, 0x37 };
-const unsigned char DRUMINS_HIHAT_OP[11]  PROGMEM = { 0x30, 0x2E, 0x00, 0x82, 0xF6, 0x00, 0x04, 0x10, 0x74, 0xF8, 0x35 };
-const unsigned char DRUMINS_CLAP[11]      PROGMEM = { 0x30, 0x3E, 0x00, 0x9F, 0x0F, 0x00, 0x30, 0x00, 0x87, 0xFA, 0x0F };
-const unsigned char DRUMINS_LO_TOMS[11]   PROGMEM = { 0x30, 0x06, 0x0A, 0xFA, 0x1F, 0x00, 0x11, 0x00, 0xF5, 0xF5, 0x0C };
+const uint8_t DRUMINS_BASS_DR[11]    PROGMEM = { 0x30, 0x01, 0x07, 0xFA, 0xFD, 0x00, 0x01, 0x00, 0xF6, 0x47, 0x05 };
+const uint8_t DRUMINS_SNARE[11]     PROGMEM = { 0x30, 0x24, 0x00, 0xFF, 0x0F, 0x00, 0x02, 0x00, 0xF7, 0xA9, 0x0F };
+const uint8_t DRUMINS_HIHAT_CL[11]  PROGMEM = { 0x30, 0x2C, 0x00, 0xF2, 0xFE, 0x00, 0x02, 0x06, 0xB8, 0xD8, 0x37 };
+const uint8_t DRUMINS_HIHAT_OP[11]  PROGMEM = { 0x30, 0x2E, 0x00, 0x82, 0xF6, 0x00, 0x04, 0x10, 0x74, 0xF8, 0x35 };
+const uint8_t DRUMINS_TOMS[11]      PROGMEM = { 0x30, 0x06, 0x0A, 0xFA, 0x1F, 0x00, 0x11, 0x00, 0xF5, 0xF5, 0x0C };
 
 ISR(PCINT3_vect) {
     if (!(PINE & (1<<PINE0))) {
@@ -118,7 +107,7 @@ ISR(TIMER3_COMPB_vect) {
 void init(void) {
     cli();
     DDRE &= ~((1<<DDE0) | (1<<DDE1));
-    //PORTE |= (1<<PORTE0);
+    PORTE |= (1<<PORTE0) | (1<<PORTE1);
     PCICR |= 1<<PCIE3;
     // pe0 and pe1 pin change interrupts
     PCMSK3 |= 1<<PCINT24;
@@ -153,7 +142,11 @@ void nextStep(void) {
     // play all the notes for this step
     for (int i = 0; i < NUM_INST; i++) {
         if (steps[i][step]) {
-            playNote(i, octaves[i], NOTE_C);
+            playNote(i, octaves[i], notes[i]);
+            if (i == CH) {
+                setKeyOn(OH, 0);
+                break;
+            }
         }
     }
     GPIO_setLED(step == 0 ? 15 : step - 1, step == 0 ? steps[current_channel][15] : steps[current_channel][step - 1], 0);
@@ -163,23 +156,23 @@ void nextStep(void) {
 }
 
 void setUpInstruments(void) {
-    Instrument bass_drum = loadInstrument(DRUMINS_BASS_DR1, 1);
+    Instrument bass_drum = loadInstrument(DRUMINS_BASS_DR, 1);
     setInstrument(BD, bass_drum, 1.0);
     
-    Instrument snare_drum = loadInstrument(DRUMINS_SNARE_EL, 1);
+    Instrument snare_drum = loadInstrument(DRUMINS_SNARE, 1);
     setInstrument(SN, snare_drum, 1.0);
     
-    Instrument clap = loadInstrument(DRUMINS_CLAP, 1);
-    setInstrument(CL, clap, 1.0);
+    Instrument ltom = loadInstrument(DRUMINS_TOMS, 1);
+    setInstrument(LT, ltom, 1.0);
     
-    Instrument cymbal = loadInstrument(DRUMINS_LO_TOMS, 1);
-    setInstrument(CY, cymbal, 1.0);
-    
-    Instrument open_hat = loadInstrument(DRUMINS_HIHAT_OP, 1);
-    setInstrument(OH, open_hat, 1.0);
+    Instrument htom = loadInstrument(DRUMINS_TOMS, 1);
+    setInstrument(HT, htom, 1.0);
     
     Instrument closed_hat = loadInstrument(DRUMINS_HIHAT_CL, 1);
     setInstrument(CH, closed_hat, 1.0);
+    
+    Instrument open_hat = loadInstrument(DRUMINS_HIHAT_OP, 1);
+    setInstrument(OH, open_hat, 1.0);
 }
 
 void handleStepInput(void) {
@@ -220,17 +213,17 @@ void handleButtonInput(void) {
         case B_SN:
             switchChannel(SN);
             break;
-        case B_CL:
-            switchChannel(CL);
+        case B_LT:
+            switchChannel(LT);
             break;
-        case B_CY:
-            switchChannel(CY);
-            break;
-        case B_OH:
-            switchChannel(OH);
+        case B_HT:
+            switchChannel(HT);
             break;
         case B_CH:
             switchChannel(CH);
+            break;
+        case B_OH:
+            switchChannel(OH);
             break;
         case B_STRT:
             pressStart();
@@ -359,8 +352,6 @@ int main(void) {
     _delay_ms(200);
     switchChannel(BD);
     selectSetting(PAR_A);
-    selectSetting(TEMPO);
-    toggleSelectMode();
     while (1) {
         if (next_step) {
             nextStep();
