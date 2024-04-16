@@ -47,6 +47,9 @@
 
 #define LED_BRIGHTNESS 0x0F
 
+#define USE_GPIO3 1
+#define USE_ENC 0
+
 static int32_t enc_position;
 
 static uint16_t start(void) {
@@ -157,8 +160,6 @@ void GPIO_init(void) {
     // change to 12 for 400k
     TWBR0 = 12;
     
-    #define USE_GPIO3 1
-    
     transmit(GPIO_ADDR1, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
     transmit(GPIO_ADDR2, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
     #if USE_GPIO3
@@ -199,8 +200,6 @@ void GPIO_init(void) {
     GPIO_readButtons();
     // turn off all leds
     GPIO_setAllLEDs(0x0);
-    
-    #define USE_ENC 0
 
     #if USE_ENC
     transmit(ENC_ADDR, b(3){ENC_REG_STATUS, ENC_REG_RESET, 0xFF}, 3);
@@ -259,7 +258,11 @@ static uint16_t readInput(uint8_t addr) {
 }
 
 uint16_t GPIO_readButtons(void) {
+    #if USE_GPIO3
     return readInput(GPIO_ADDR3);
+    #else
+    return 0;
+    #endif
 }
 
 uint16_t GPIO_readSteps(void) {
@@ -267,6 +270,7 @@ uint16_t GPIO_readSteps(void) {
 }
 
 uint8_t GPIO_readEncoder(void) {
+    #if USE_ENC
     uint8_t data[4];
     transmit(ENC_ADDR, b(2){ENC_REG_ENCODER, ENC_REG_POS}, 2);
     _delay_us(20);
@@ -283,4 +287,7 @@ uint8_t GPIO_readEncoder(void) {
     uint32_t pin_states = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
     push = pin_states & ((uint32_t)1<<24) ? 0x04 : 0x0;
     return up | down | push;
+    #else
+    return 0;
+    #endif
 }

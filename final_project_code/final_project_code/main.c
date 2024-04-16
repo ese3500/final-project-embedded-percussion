@@ -28,10 +28,10 @@
 #define TEMPO 4
 
 #define B_MASK 0x7F
-#define B_BD   0x1
-#define B_SN   0x2
-#define B_CL   0x4
-#define B_CY   0x8
+#define B_BD   0x01
+#define B_SN   0x02
+#define B_CL   0x04
+#define B_CY   0x08
 #define B_OH   0x10
 #define B_CH   0x20
 #define B_STRT 0x40
@@ -207,6 +207,8 @@ void pressStart(void) {
         send_start = 1;
     }
     stopped = !stopped;
+    step = 0;
+    GPIO_setAllLEDsArray(steps[current_channel]);
 }
 
 void handleButtonInput(void) {
