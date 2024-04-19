@@ -48,7 +48,7 @@
 #define LED_BRIGHTNESS 0x0F
 
 #define USE_GPIO3 1
-#define USE_ENC 0
+#define USE_ENC 1
 
 static int32_t enc_position;
 
@@ -188,12 +188,12 @@ void GPIO_init(void) {
     // set as inputs
     transmit(GPIO_ADDR2, b(3){GPIO_REG_CONFIG0, 0xFF, 0xFF}, 3);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, b(3){GPIO_REG_CONFIG0, 0xFF, 0x0}, 3);
+    transmit(GPIO_ADDR3, b(3){GPIO_REG_CONFIG0, 0x7F, 0x0}, 3);
     #endif
     // enable interrupts
     transmit(GPIO_ADDR2, b(3){GPIO_REG_INTENABLE0, 0x0, 0x0}, 3);
     #if USE_GPIO3
-    transmit(GPIO_ADDR3, b(3){GPIO_REG_INTENABLE0, 0xFC, 0xFF}, 3);
+    transmit(GPIO_ADDR3, b(3){GPIO_REG_INTENABLE0, 0b10000000, 0xFF}, 3);
     #endif
     // clear the interrupt
     GPIO_readSteps();

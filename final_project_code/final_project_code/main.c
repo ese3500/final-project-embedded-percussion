@@ -176,6 +176,7 @@ void setUpInstruments(void) {
 }
 
 void handleStepInput(void) {
+    input_intrpt1 = 0;
     uint16_t step_buttons = GPIO_readSteps();
     for (int i = 0; i < 16; i++) {
         if ((step_buttons>>i) & 0x1) {
@@ -184,13 +185,21 @@ void handleStepInput(void) {
             break;
         }
     }
-    input_intrpt1 = 0;
+}
+
+void redrawSetting(int setting) {
+    LCD_drawBlock(24 + setting * 32, 38, 40 + setting * 32, 94, BLACK);
+    int16_t y = 38 + 0.2196078431372 * (255 - settings[current_channel][setting]);
+    LCD_drawBlock(24 + setting * 32, y, 40 + setting * 32, 94, WHITE);
 }
 
 void switchChannel(int new_channel) {
     // add drawblocks for the settings bars
     LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
     LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
+    for (int i = 0; i < 4; i++) {
+        redrawSetting(i);
+    }
     GPIO_setAllLEDsArray(steps[new_channel]);
     current_channel = new_channel;
 }
@@ -205,6 +214,7 @@ void pressStart(void) {
 }
 
 void handleButtonInput(void) {
+    input_intrpt2 = 0;
     uint16_t buttons = GPIO_readButtons();
     switch (buttons & B_MASK) {
         case B_BD:
@@ -229,7 +239,6 @@ void handleButtonInput(void) {
             pressStart();
             break;
     }
-    input_intrpt2 = 0;
 }
 
 void setUpScreen(void) {
@@ -243,8 +252,6 @@ void setUpScreen(void) {
         LCD_drawBlock(22 + i * 32, 36, 42 + i * 32, 96, WHITE);
         LCD_drawBlock(24 + i * 32, 38, 40 + i * 32, 94, BLACK);
         LCD_drawString(24 + i * 32, 100, labels[i], WHITE, BLACK);
-        // delete next line
-        LCD_drawBlock(23 + i * 32, 40 + i * 10, 40 + i * 32, 94, WHITE);
     }
     const uint8_t qNote[] = {
         0b00000100,
@@ -282,12 +289,13 @@ void toggleSelectMode() {
 }
 
 void modifySetting(int change) {
-    uint8_t* setting;
+    uint8_t* setting = NULL;
     if (current_setting == TEMPO) {
         tempo = CLAMP(tempo + change, 60, 300);
     } else {
         setting = &(settings[current_channel][current_setting]);
         *setting = CLAMP(*setting + change, 0, 255);
+        redrawSetting(current_setting);
     }    
     switch(current_setting) {
         case PAR_A:
@@ -322,6 +330,7 @@ void selectSetting(int new_setting) {
 }
 
 void handleEncoderInput(void) {
+    encoder_intrpt = 0;
     uint8_t encoder_input = GPIO_readEncoder();
     switch(encoder_input & ENC_MASK) {
         case ENC_UP:
@@ -342,7 +351,6 @@ void handleEncoderInput(void) {
             toggleSelectMode();
             break;
     }
-    encoder_intrpt = 0;
 }
 
 int main(void) {
@@ -360,7 +368,7 @@ int main(void) {
         if (input_intrpt1) {
             handleStepInput();
             continue;
-        } 
+        }
         if (input_intrpt2) {
             handleButtonInput();
             continue;
