@@ -43,31 +43,23 @@
 
 #define NUM_INST 6
 
-uint8_t steps[6][16] = {
-    {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
-    {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // LT
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0}, // HT
-    {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0}, // CH
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}  // OH 
-};
-//uint8_t steps[6][16];
-uint8_t settings[6][4] = {
-    // A,  B,  TUN, VOL
-    {127, 127, 127, 255},
-    {127, 127, 127, 255},
-    {127, 127, 127, 255},
-    {127, 127, 127, 255},
-    {127, 127, 127, 255},
-    {127, 127, 127, 255}
-};
+//uint8_t steps[6][16] = {
+    //{1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
+    //{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
+    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // LT
+    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0}, // HT
+    //{0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0}, // CH
+    //{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}  // OH 
+//};
+uint8_t steps[6][16];
+uint8_t settings[6][4];
 const uint8_t octaves[6] = {3, 3, 4, 4, 3, 3};
 const uint8_t notes[6] = {NOTE_C, NOTE_C, NOTE_C, NOTE_E, NOTE_E, NOTE_E};
 uint16_t tempo = 96;
 char tempoStr[5];
 int step = 0;
 int current_channel = BD;
-int stopped = 0;
+int stopped = 1;
 int select_mode = 1;
 int current_setting = 0;
 volatile int send_start = 0;
@@ -95,13 +87,19 @@ ISR(PCINT3_vect) {
 
 ISR(TIMER3_COMPA_vect) {
     next_step = !stopped;
-    PORTD |= (!stopped)<<PORTD3;
-    PORTD |= (send_start<<PORTD2);
 }
 
 ISR(TIMER3_COMPB_vect) {
-    PORTD &= ~((1<<PORTD3) | (1<<PORTD2));
-    send_start = 0;
+    PORTD &= ~(1<<PORTD3);
+}
+
+void initSettings(void) {
+    for (int i = 0; i < NUM_INST; i++) {
+        settings[i][PAR_A] = 127;
+        settings[i][PAR_B] = 127;
+        settings[i][TUN]   = 127;
+        settings[i][VOL]   = 255;
+    }
 }
 
 void init(void) {
@@ -140,6 +138,8 @@ void init(void) {
 
 void nextStep(void) {
     // play all the notes for this step
+    PORTD |= (1<<PORTD2);
+    PORTD |= (1<<PORTD3);
     for (int i = 0; i < NUM_INST; i++) {
         if (steps[i][step]) {
             playNote(i, octaves[i], notes[i]);
@@ -206,7 +206,12 @@ void switchChannel(int new_channel) {
 
 void pressStart(void) {
     if (stopped) {
+        step = 0;
         send_start = 1;
+        PORTD &= ~(1<<PORTD3);
+    } else {
+        PORTD &= ~(1<<PORTD2);
+        PORTD &= ~(1<<PORTD3);
     }
     stopped = !stopped;
     step = 0;
@@ -356,6 +361,7 @@ void handleEncoderInput(void) {
 int main(void) {
     init();
     setUpInstruments();
+    initSettings();
     setUpScreen();
     _delay_ms(200);
     switchChannel(BD);
