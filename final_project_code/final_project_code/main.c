@@ -69,6 +69,25 @@ volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
 volatile int encoder_intrpt = 0;
 
+typedef void (*Setter)(byte, byte);
+typedef int (*Getter)(byte);
+typedef struct {
+    Setter setter;
+    Getter getter;
+    int min;
+    int max;
+} Setting;
+void placeholderS(byte x, byte y) {};
+int placeholderG(byte x) {return 0;};
+const Setting instrumentsAB[6][2] = {
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}}
+};
+
 const uint8_t DRUMINS_BASS_DR[11]    PROGMEM = { 0x30, 0x01, 0x07, 0xFA, 0xFD, 0x00, 0x01, 0x00, 0xF6, 0x47, 0x05 };
 const uint8_t DRUMINS_SNARE[11]     PROGMEM = { 0x30, 0x24, 0x00, 0xFF, 0x0F, 0x00, 0x02, 0x00, 0xF7, 0xA9, 0x0F };
 const uint8_t DRUMINS_HIHAT_CL[11]  PROGMEM = { 0x30, 0x2C, 0x00, 0xF2, 0xFE, 0x00, 0x02, 0x06, 0xB8, 0xD8, 0x37 };
@@ -95,8 +114,8 @@ ISR(TIMER3_COMPB_vect) {
 
 void initSettings(void) {
     for (int i = 0; i < NUM_INST; i++) {
-        settings[i][PAR_A] = 127;
-        settings[i][PAR_B] = 127;
+        settings[i][PAR_A] = instrumentsAB[i][PAR_A].getter(i);
+        settings[i][PAR_B] = instrumentsAB[i][PAR_B].getter(i);
         settings[i][TUN]   = 127;
         settings[i][VOL]   = 255;
     }
@@ -304,13 +323,15 @@ void modifySetting(int change) {
     }    
     switch(current_setting) {
         case PAR_A:
+            instrumentsAB[current_channel][PAR_A].setter(current_channel, *setting);
             break;
         case PAR_B:
+            instrumentsAB[current_channel][PAR_B].setter(current_channel, *setting);
             break;
         case TUN:
             break;
         case VOL:
-            setChannelVolume(current_setting, *setting);
+            setChannelVolume(current_channel, *setting);
             break;
         case TEMPO:
             sprintf(tempoStr, "%d", tempo);
