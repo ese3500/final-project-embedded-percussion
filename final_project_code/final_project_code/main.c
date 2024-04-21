@@ -53,8 +53,8 @@
 //};
 uint8_t steps[6][16];
 uint8_t settings[6][4];
-const uint8_t octaves[6] = {3, 3, 4, 4, 3, 3};
-const uint8_t notes[6] = {NOTE_C, NOTE_C, NOTE_C, NOTE_E, NOTE_E, NOTE_E};
+uint8_t octaves[6] = {3, 3, 4, 4, 3, 3};
+uint8_t notes[6] = {NOTE_C, NOTE_C, NOTE_C, NOTE_E, NOTE_E, NOTE_E};
 uint16_t tempo = 96;
 char tempoStr[5];
 int step = 0;
@@ -117,7 +117,7 @@ void initSettings(void) {
     for (int i = 0; i < NUM_INST; i++) {
         settings[i][PAR_A] = instrumentsAB[i][PAR_A].getter(i, instrumentsAB[i][PAR_A].operator);
         settings[i][PAR_B] = instrumentsAB[i][PAR_B].getter(i, instrumentsAB[i][PAR_B].operator);
-        settings[i][TUN]   = 127;
+        settings[i][TUN]   = octaves[i] * 12 + notes[i];
         settings[i][VOL]   = 255;
     }
 }
@@ -330,6 +330,8 @@ void modifySetting(int change) {
             instrumentsAB[current_channel][PAR_B].setter(current_channel, instrumentsAB[current_channel][PAR_B].operator, *setting);
             break;
         case TUN:
+            octaves[current_channel] = *setting / 12;
+            notes[current_channel]   = *setting % 12;
             break;
         case VOL:
             setChannelVolume(current_channel, *setting);
