@@ -69,23 +69,24 @@ volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
 volatile int encoder_intrpt = 0;
 
-typedef void (*Setter)(byte, byte);
-typedef int (*Getter)(byte);
+typedef void (*Setter)(byte, byte, byte);
+typedef int (*Getter)(byte, byte);
 typedef struct {
     Setter setter;
     Getter getter;
+    int operator;
     int min;
     int max;
 } Setting;
-void placeholderS(byte x, byte y) {};
-int placeholderG(byte x) {return 0;};
+void placeholderS(byte x, byte y, byte z) {};
+int placeholderG(byte x, byte y) {return 0;};
 const Setting instrumentsAB[6][2] = {
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}}
+    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}}
 };
 
 const uint8_t DRUMINS_BASS_DR[11]    PROGMEM = { 0x30, 0x01, 0x07, 0xFA, 0xFD, 0x00, 0x01, 0x00, 0xF6, 0x47, 0x05 };
@@ -114,8 +115,8 @@ ISR(TIMER3_COMPB_vect) {
 
 void initSettings(void) {
     for (int i = 0; i < NUM_INST; i++) {
-        settings[i][PAR_A] = instrumentsAB[i][PAR_A].getter(i);
-        settings[i][PAR_B] = instrumentsAB[i][PAR_B].getter(i);
+        settings[i][PAR_A] = instrumentsAB[i][PAR_A].getter(i, instrumentsAB[i][PAR_A].operator);
+        settings[i][PAR_B] = instrumentsAB[i][PAR_B].getter(i, instrumentsAB[i][PAR_B].operator);
         settings[i][TUN]   = 127;
         settings[i][VOL]   = 255;
     }
@@ -323,10 +324,10 @@ void modifySetting(int change) {
     }    
     switch(current_setting) {
         case PAR_A:
-            instrumentsAB[current_channel][PAR_A].setter(current_channel, *setting);
+            instrumentsAB[current_channel][PAR_A].setter(current_channel, instrumentsAB[current_channel][PAR_B].operator, *setting);
             break;
         case PAR_B:
-            instrumentsAB[current_channel][PAR_B].setter(current_channel, *setting);
+            instrumentsAB[current_channel][PAR_B].setter(current_channel, instrumentsAB[current_channel][PAR_B].operator, *setting);
             break;
         case TUN:
             break;
