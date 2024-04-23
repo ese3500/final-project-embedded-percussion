@@ -37,6 +37,7 @@ void GPIO_setLED(uint8_t LED, uint8_t onOff, uint8_t bright);
 uint16_t GPIO_readSteps(void);
 uint16_t GPIO_readButtons(void);
 uint8_t GPIO_readEncoder(void);
+int32_t GPIO_readEncoderPos(void);
 
 
 

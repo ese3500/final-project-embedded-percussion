@@ -39,8 +39,10 @@
 #define ENC_REG_ENCINTSET 0x10
 #define ENC_REG_SWITCH    0x01
 #define ENC_REG_SWINTSET  0x08
-#define ENC_REG_SWBLKCLR  0x03
-#define ENC_REG_SWBLKSET  0x02
+#define ENC_REG_SWBLKCLR  0x06
+#define ENC_REG_SWBLKSET  0x05
+#define ENC_REG_SWBLKDCLR 0x03
+#define ENC_REG_SWBLKDSET 0x02
 #define ENC_REG_SWBLK     0x04
 #define ENC_REG_SWPULLUP  0x0B
 #define ENC_REG_POS       0x30
@@ -158,7 +160,7 @@ void GPIO_init(void) {
     DDRC  &= ~((1<<PORTC4) | (1<<PORTC5));
     // 16M / (16 + 2*24) = 250k
     // change to 12 for 400k
-    TWBR0 = 12;
+    TWBR0 = 56;
     
     transmit(GPIO_ADDR1, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
     transmit(GPIO_ADDR2, b(2){GPIO_REG_SOFTRESET, 0x0}, 2);
@@ -203,23 +205,23 @@ void GPIO_init(void) {
 
     #if USE_ENC
     transmit(ENC_ADDR, b(3){ENC_REG_STATUS, ENC_REG_RESET, 0xFF}, 3);
-    transmit(ENC_ADDR, b(3){ENC_REG_ENCODER, ENC_REG_ENCINTSET, 0x1}, 3);
+    transmit(ENC_ADDR, b(3){ENC_REG_ENCODER, ENC_REG_ENCINTSET, 0x01}, 3);
     uint32_t pins = (uint32_t)1 << 24; // switch on pin 24
     uint8_t cmd[] = {
-        ENC_REG_SWITCH, ENC_REG_SWINTSET,
+        ENC_REG_SWITCH, ENC_REG_SWBLKDCLR,
         (uint8_t)(pins >> 24), (uint8_t)(pins >> 16), (uint8_t)(pins >> 8), (uint8_t)pins
     };
-    transmit(ENC_ADDR, cmd, 6);
-    cmd[1] = ENC_REG_SWBLKCLR;
     transmit(ENC_ADDR, cmd, 6);
     cmd[1] = ENC_REG_SWPULLUP;
     transmit(ENC_ADDR, cmd, 6);
     cmd[1] = ENC_REG_SWBLKSET;
     transmit(ENC_ADDR, cmd, 6);
+    cmd[1] = ENC_REG_SWINTSET;
+    transmit(ENC_ADDR, cmd, 6);
     
     uint8_t data[4];
     transmit(ENC_ADDR, b(2){ENC_REG_ENCODER, ENC_REG_POS}, 2);
-    _delay_us(20);
+    _delay_us(250);
     receive(ENC_ADDR, data, 4);
     enc_position = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
     enc_position = -enc_position;
@@ -269,23 +271,38 @@ uint16_t GPIO_readSteps(void) {
     return readInput(GPIO_ADDR2);
 }
 
+int32_t GPIO_readEncoderPos(void) {
+    #if USE_ENC
+    uint8_t data[4];
+    transmit(ENC_ADDR, b(2){ENC_REG_ENCODER, ENC_REG_POS}, 2);
+    _delay_us(250);
+    receive(ENC_ADDR, data, 4);
+    int32_t pos = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
+    //pos = -pos;
+    enc_position = pos;
+    return pos;
+    #else
+    return 0;
+    #endif
+}
+
 uint8_t GPIO_readEncoder(void) {
     #if USE_ENC
     uint8_t data[4];
     transmit(ENC_ADDR, b(2){ENC_REG_ENCODER, ENC_REG_POS}, 2);
-    _delay_us(20);
+    _delay_us(250);
     receive(ENC_ADDR, data, 4);
     int32_t pos = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
-    pos = -pos;
+    //pos = -pos;
     uint8_t up, down, push;
     up = pos > enc_position ? 0x01 : 0x0;
     down = pos < enc_position ? 0x02 : 0x0;
     enc_position = pos;
     transmit(ENC_ADDR, b(2){ENC_REG_SWITCH, ENC_REG_SWBLK}, 2);
-    _delay_us(20);
+    _delay_us(250);
     receive(ENC_ADDR, data, 4);
     uint32_t pin_states = ((uint32_t)data[0] << 24) | ((uint32_t)data[1] << 16) | ((uint32_t)data[2] << 8) | (uint32_t)data[3];
-    push = pin_states & ((uint32_t)1<<24) ? 0x04 : 0x0;
+    push = pin_states & ((uint32_t)1<<24) ? 0x0 : 0x04;
     return up | down | push;
     #else
     return 0;

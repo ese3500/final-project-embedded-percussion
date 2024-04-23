@@ -104,6 +104,11 @@ ISR(PCINT3_vect) {
     }
 }
 
+ISR(PCINT1_vect) {
+    if (!(PINC & (1<<PINC0))) {
+        encoder_intrpt = 1;
+    }
+}
 
 ISR(TIMER3_COMPA_vect) {
     next_step = !stopped;
@@ -130,6 +135,11 @@ void init(void) {
     // pe0 and pe1 pin change interrupts
     PCMSK3 |= 1<<PCINT24;
     PCMSK3 |= 1<<PCINT25;
+    // pc0 pin change interrupt
+    DDRC &= ~(1<<DDC0);
+    PORTC |= (1<<PORTC0);
+    PCICR |= PCIE1;
+    PCMSK1 |= 1<<PCINT8;
     // sync jack setup
     // PD3 is tip  - clock
     // PD2 is ring - start/stop
@@ -225,6 +235,7 @@ void switchChannel(int new_channel) {
 }
 
 void pressStart(void) {
+    _delay_ms(20);
     if (stopped) {
         step = 0;
         send_start = 1;
@@ -361,6 +372,12 @@ void selectSetting(int new_setting) {
 void handleEncoderInput(void) {
     encoder_intrpt = 0;
     uint8_t encoder_input = GPIO_readEncoder();
+    //uint8_t encoder_input = 0;
+    //int32_t idk = GPIO_readEncoderPos();
+    //LCD_drawString(70, 20, "                  ", WHITE, BLACK);
+    //sprintf(tempoStr, "%ld", idk);
+    //sprintf(tempoStr, "%x", encoder_input);
+    //LCD_drawString(70, 20, tempoStr, WHITE, BLACK);
     switch(encoder_input & ENC_MASK) {
         case ENC_UP:
             if (select_mode) {
