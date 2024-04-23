@@ -4,7 +4,7 @@
  * Created: 3/22/2024 1:50:24 PM
  * Author : Mia McMahill & Madison Hughes
  */ 
-#define F_CPU 16000000
+#define F_CPU 8000000
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -62,12 +62,12 @@ int current_channel = BD;
 int stopped = 1;
 int select_mode = 1;
 int current_setting = 0;
+int enc_button_last = 0;
 volatile int send_start = 0;
 volatile int ignore_next = 0;
 volatile int next_step = 0;
 volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
-volatile int encoder_intrpt = 0;
 
 typedef void (*Setter)(byte, byte, byte);
 typedef int (*Getter)(byte, byte);
@@ -104,12 +104,6 @@ ISR(PCINT3_vect) {
     }
 }
 
-ISR(PCINT1_vect) {
-    if (!(PINC & (1<<PINC0))) {
-        encoder_intrpt = 1;
-    }
-}
-
 ISR(TIMER3_COMPA_vect) {
     next_step = !stopped;
 }
@@ -129,17 +123,14 @@ void initSettings(void) {
 
 void init(void) {
     cli();
+    CLKPR = 1<<CLKPCE;
+    CLKPR = 1<<CLKPS0;
     DDRE &= ~((1<<DDE0) | (1<<DDE1));
     PORTE |= (1<<PORTE0) | (1<<PORTE1);
     PCICR |= 1<<PCIE3;
     // pe0 and pe1 pin change interrupts
     PCMSK3 |= 1<<PCINT24;
     PCMSK3 |= 1<<PCINT25;
-    // pc0 pin change interrupt
-    DDRC &= ~(1<<DDC0);
-    PORTC |= (1<<PORTC0);
-    PCICR |= PCIE1;
-    PCMSK1 |= 1<<PCINT8;
     // sync jack setup
     // PD3 is tip  - clock
     // PD2 is ring - start/stop
@@ -163,6 +154,16 @@ void init(void) {
     OCR3B = OCR3A / 2.0;
     
     TIMSK3 |= (1<<OCIE3A) | (1<<OCIE3B);
+    
+    // 1/2024 prescale
+    TCCR1B |= (1<<CS10);
+    TCCR1B &= ~(1<<CS11);
+    TCCR1B |= (1<<CS12);
+    // set timer to fast pwm mode
+    TCCR1A &= ~(1<<WGM10);
+    TCCR1A &= ~(1<<WGM11);
+    TCCR1B &= ~(1<<WGM12);
+    TCCR1B &= ~(1<<WGM13);
     sei();
 }
 
@@ -348,7 +349,7 @@ void modifySetting(int change) {
             setChannelVolume(current_channel, *setting);
             break;
         case TEMPO:
-            sprintf(tempoStr, "%d", tempo);
+            sprintf(tempoStr, tempo >= 100 ? "%d" : "%d " , tempo);
             LCD_drawString(129, 20, tempoStr, WHITE, BLACK);
             OCR3A = F_CPU / ((float)(64 * (uint32_t)tempo * 4) / 60.0);
             OCR3B = OCR3A / 2.0;
@@ -370,14 +371,8 @@ void selectSetting(int new_setting) {
 }
 
 void handleEncoderInput(void) {
-    encoder_intrpt = 0;
+    cli();
     uint8_t encoder_input = GPIO_readEncoder();
-    //uint8_t encoder_input = 0;
-    //int32_t idk = GPIO_readEncoderPos();
-    //LCD_drawString(70, 20, "                  ", WHITE, BLACK);
-    //sprintf(tempoStr, "%ld", idk);
-    //sprintf(tempoStr, "%x", encoder_input);
-    //LCD_drawString(70, 20, tempoStr, WHITE, BLACK);
     switch(encoder_input & ENC_MASK) {
         case ENC_UP:
             if (select_mode) {
@@ -394,12 +389,22 @@ void handleEncoderInput(void) {
             }
             break;
         case ENC_PRESS:
-            toggleSelectMode();
+            if (!enc_button_last) {
+                toggleSelectMode();
+            }
             break;
     }
+    enc_button_last = encoder_input & ENC_PRESS;
+    sei();
+}
+
+void clearFlags(void) {
+    input_intrpt1 = 0;
+    input_intrpt2 = 0;
 }
 
 int main(void) {
+    _delay_ms(400);
     init();
     setUpInstruments();
     initSettings();
@@ -407,20 +412,21 @@ int main(void) {
     _delay_ms(200);
     switchChannel(BD);
     selectSetting(PAR_A);
+    clearFlags();
     while (1) {
         if (next_step) {
             nextStep();
             continue;
         }
-        if (input_intrpt1) {
+        if (input_intrpt1 && !next_step) {
             handleStepInput();
             continue;
         }
-        if (input_intrpt2) {
+        if (input_intrpt2 && !next_step) {
             handleButtonInput();
             continue;
         }
-        if (encoder_intrpt) {
+        if (TCNT1 % 512 == 0 && !next_step) {
             handleEncoderInput();
             continue;
         }
