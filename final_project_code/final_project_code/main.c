@@ -43,6 +43,9 @@
 
 #define NUM_INST 6
 
+#define TUN_MAX 95
+#define VOL_MAX 0x3F
+
 //uint8_t steps[6][16] = {
     //{1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0}, // BD
     //{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}, // SN
@@ -70,23 +73,22 @@ volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
 
 typedef void (*Setter)(byte, byte, byte);
-typedef int (*Getter)(byte, byte);
+typedef byte (*Getter)(byte, byte);
 typedef struct {
     Setter setter;
     Getter getter;
     int operator;
-    int min;
     int max;
 } Setting;
 void placeholderS(byte x, byte y, byte z) {};
-int placeholderG(byte x, byte y) {return 0;};
+byte placeholderG(byte x, byte y) {return 0;};
 const Setting instrumentsAB[6][2] = {
-    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 0, 255}, {&placeholderS, &placeholderG, 0, 0, 255}}
+    {{&setDecay, &getDecay, 1, 0xF}, {&setDecay, &getDecay, 0, 0xF}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}}
 };
 
 const uint8_t DRUMINS_BASS_DR[11]    PROGMEM = { 0x30, 0x01, 0x07, 0xFA, 0xFD, 0x00, 0x01, 0x00, 0xF6, 0x47, 0x05 };
@@ -116,8 +118,8 @@ void initSettings(void) {
     for (int i = 0; i < NUM_INST; i++) {
         settings[i][PAR_A] = instrumentsAB[i][PAR_A].getter(i, instrumentsAB[i][PAR_A].operator);
         settings[i][PAR_B] = instrumentsAB[i][PAR_B].getter(i, instrumentsAB[i][PAR_B].operator);
-        settings[i][TUN]   = octaves[i] * 12 + notes[i];
-        settings[i][VOL]   = 255;
+        settings[i][TUN]   = TUN_MAX - (octaves[i] * 12 + notes[i]);
+        settings[i][VOL]   = getChannelVolume(i);
     }
 }
 
@@ -218,9 +220,9 @@ void handleStepInput(void) {
     }
 }
 
-void redrawSetting(int setting) {
+void redrawSetting(int setting, int max) {
     LCD_drawBlock(24 + setting * 32, 38, 40 + setting * 32, 94, BLACK);
-    int16_t y = 38 + 0.2196078431372 * (255 - settings[current_channel][setting]);
+    int16_t y = 38 + (56.0 / max) * settings[current_channel][setting];
     LCD_drawBlock(24 + setting * 32, y, 40 + setting * 32, 94, WHITE);
 }
 
@@ -228,9 +230,10 @@ void switchChannel(int new_channel) {
     // add drawblocks for the settings bars
     LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
     LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
-    for (int i = 0; i < 4; i++) {
-        redrawSetting(i);
-    }
+    redrawSetting(PAR_A, instrumentsAB[current_channel][PAR_A].max);
+    redrawSetting(PAR_B, instrumentsAB[current_channel][PAR_B].max);
+    redrawSetting(TUN, TUN_MAX);
+    redrawSetting(VOL, VOL_MAX);
     GPIO_setAllLEDsArray(steps[new_channel]);
     current_channel = new_channel;
 }
@@ -327,34 +330,52 @@ void toggleSelectMode() {
 
 void modifySetting(int change) {
     uint8_t* setting = NULL;
-    if (current_setting == TEMPO) {
-        tempo = CLAMP(tempo + change, 60, 300);
-    } else {
-        setting = &(settings[current_channel][current_setting]);
-        *setting = CLAMP(*setting + change, 0, 255);
-        redrawSetting(current_setting);
-    }    
-    switch(current_setting) {
+    int max, min = 0;
+    switch (current_setting) {
         case PAR_A:
-            instrumentsAB[current_channel][PAR_A].setter(current_channel, instrumentsAB[current_channel][PAR_B].operator, *setting);
-            break;
         case PAR_B:
-            instrumentsAB[current_channel][PAR_B].setter(current_channel, instrumentsAB[current_channel][PAR_B].operator, *setting);
+            max = instrumentsAB[current_channel][current_setting].max;
             break;
         case TUN:
-            octaves[current_channel] = *setting / 12;
-            notes[current_channel]   = *setting % 12;
+            max = TUN_MAX;
             break;
         case VOL:
+            max = VOL_MAX;
+            break;
+        case TEMPO:
+            min = 60;
+            max = 300;
+            break;
+        default:
+            return;
+    }
+    switch(current_setting) {
+        case PAR_A:
+        case PAR_B:
+            setting = &(settings[current_channel][current_setting]);
+            *setting = CLAMP(*setting + change, min, max);
+            instrumentsAB[current_channel][current_setting].setter(current_channel, instrumentsAB[current_channel][current_setting].operator, *setting);
+            break;
+        case TUN:
+            setting = &(settings[current_channel][current_setting]);
+            *setting = CLAMP(*setting + change, min, max);
+            octaves[current_channel] = (TUN_MAX - *setting) / 12;
+            notes[current_channel]   = (TUN_MAX - *setting) % 12;
+            break;
+        case VOL:
+            setting = &(settings[current_channel][current_setting]);
+            *setting = CLAMP(*setting + change, min, max);
             setChannelVolume(current_channel, *setting);
             break;
         case TEMPO:
+            tempo = CLAMP(tempo - change, 60, 300);
             sprintf(tempoStr, tempo >= 100 ? "%d" : "%d " , tempo);
             LCD_drawString(129, 20, tempoStr, WHITE, BLACK);
             OCR3A = F_CPU / ((float)(64 * (uint32_t)tempo * 4) / 60.0);
             OCR3B = OCR3A / 2.0;
-            break;
+            return;
     }
+    redrawSetting(current_setting, max);
 }
 
 void selectSetting(int new_setting) {
@@ -378,14 +399,14 @@ void handleEncoderInput(void) {
             if (select_mode) {
                 selectSetting(CLAMP(current_setting + 1, 0, 4));
             } else {
-                modifySetting(1);
+                modifySetting(-1);
             }
             break;
         case ENC_DOWN:
             if (select_mode) {
                 selectSetting(CLAMP(current_setting - 1, 0, 4));
             } else {
-                modifySetting(-1);
+                modifySetting(1);
             }
             break;
         case ENC_PRESS:
