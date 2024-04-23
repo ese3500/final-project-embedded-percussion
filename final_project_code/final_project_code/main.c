@@ -378,7 +378,7 @@ void modifySetting(int change) {
             setChannelVolume(current_channel, *setting);
             break;
         case TEMPO:
-            tempo = CLAMP(tempo - change, 60, 300);
+            tempo = CLAMP(tempo - change * 2, 60, 300);
             sprintf(tempoStr, tempo >= 100 ? "%d" : "%d " , tempo);
             LCD_drawString(129, 20, tempoStr, WHITE, BLACK);
             OCR3A = F_CPU / ((float)(64 * (uint32_t)tempo * 4) / 60.0);
