@@ -66,8 +66,8 @@ int stopped = 1;
 int select_mode = 1;
 int current_setting = 0;
 int enc_button_last = 0;
+int start_last = 0;
 volatile int send_start = 0;
-volatile int ignore_next = 0;
 volatile int next_step = 0;
 volatile int input_intrpt1 = 0;
 volatile int input_intrpt2 = 0;
@@ -85,8 +85,8 @@ byte placeholderG(byte x, byte y) {return 0;};
 const Setting instrumentsAB[6][2] = {
     {{&setDecay, &getDecay, 1, 0xF}, {&setDecay, &getDecay, 0, 0xF}},
     {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&setWaveForm, &getWaveForm, 1, 0x07}},
+    {{&placeholderS, &placeholderG, 0, 255}, {&setWaveForm, &getWaveForm, 1, 0x07}},
     {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
     {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}}
 };
@@ -230,8 +230,8 @@ void switchChannel(int new_channel) {
     // add drawblocks for the settings bars
     LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
     LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
-    redrawSetting(PAR_A, instrumentsAB[current_channel][PAR_A].max);
-    redrawSetting(PAR_B, instrumentsAB[current_channel][PAR_B].max);
+    redrawSetting(PAR_A, instrumentsAB[new_channel][PAR_A].max);
+    redrawSetting(PAR_B, instrumentsAB[new_channel][PAR_B].max);
     redrawSetting(TUN, TUN_MAX);
     redrawSetting(VOL, VOL_MAX);
     GPIO_setAllLEDsArray(steps[new_channel]);
@@ -239,6 +239,10 @@ void switchChannel(int new_channel) {
 }
 
 void pressStart(void) {
+    if (TCNT1 - start_last < 64) {
+        return;
+    }
+    start_last = TCNT1;
     _delay_ms(20);
     if (stopped) {
         step = 0;

@@ -69,6 +69,8 @@ void setKeyOn(byte channel, int keyOn);
 
 byte getDecay(byte channel, byte operatorNum);
 void setDecay(byte channel, byte operatorNum, byte decay);
+byte getWaveForm(byte channel, byte operatorNum);
+void setWaveForm(byte channel, byte operatorNum, byte waveForm);
 
 
 #endif /* OPL2_H_ */
