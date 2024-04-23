@@ -3,8 +3,10 @@
  *
  * Created: 3/22/2024 1:50:24 PM
  * Author : Mia McMahill & Madison Hughes
- */ 
-#define F_CPU 8000000
+ */
+#ifndef F_CPU
+    #define F_CPU 8000000
+#endif
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -80,15 +82,19 @@ typedef struct {
     int operator;
     int max;
 } Setting;
-void placeholderS(byte x, byte y, byte z) {};
-byte placeholderG(byte x, byte y) {return 0;};
+byte getFeedbackWrapper(byte channel, byte operatorNum) {
+    return getFeedback(channel);
+};
+void setFeedbackWrapper(byte channel, byte operatorNum, byte feedback) {
+    setFeedback(channel, feedback);
+};
 const Setting instrumentsAB[6][2] = {
-    {{&setDecay, &getDecay, 1, 0xF}, {&setDecay, &getDecay, 0, 0xF}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&setWaveForm, &getWaveForm, 1, 0x07}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&setWaveForm, &getWaveForm, 1, 0x07}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}},
-    {{&placeholderS, &placeholderG, 0, 255}, {&placeholderS, &placeholderG, 0, 255}}
+    {{&setDecay, &getDecay, 1, 0x0F}, {&setDecay, &getDecay, 0, 0x0F}},
+    {{&setDecay, &getDecay, 1, 0x0F}, {&setFeedbackWrapper, &getFeedbackWrapper, 0, 0x07}},
+    {{&setDecay, &getDecay, 1, 0x0F}, {&setWaveForm, &getWaveForm, 1, 0x07}},
+    {{&setDecay, &getDecay, 1, 0x0F}, {&setWaveForm, &getWaveForm, 1, 0x07}},
+    {{&setWaveForm, &getWaveForm, 1, 0x07}, {&setFeedbackWrapper, &getFeedbackWrapper, 0, 0x07}},
+    {{&setDecay, &getDecay, 1, 0x0F}, {&setAttack, &getAttack, 1, 0x0F}}
 };
 
 const uint8_t DRUMINS_BASS_DR[11]    PROGMEM = { 0x30, 0x01, 0x07, 0xFA, 0xFD, 0x00, 0x01, 0x00, 0xF6, 0x47, 0x05 };
@@ -229,13 +235,13 @@ void redrawSetting(int setting, int max) {
 void switchChannel(int new_channel) {
     // add drawblocks for the settings bars
     LCD_drawBlock(5 + current_channel * 12, 5, 12 + current_channel * 12, 12, WHITE);
+    current_channel = new_channel;
     LCD_drawBlock(5 + new_channel * 12, 5, 12 + new_channel * 12, 12, BLACK);
     redrawSetting(PAR_A, instrumentsAB[new_channel][PAR_A].max);
     redrawSetting(PAR_B, instrumentsAB[new_channel][PAR_B].max);
     redrawSetting(TUN, TUN_MAX);
     redrawSetting(VOL, VOL_MAX);
     GPIO_setAllLEDsArray(steps[new_channel]);
-    current_channel = new_channel;
 }
 
 void pressStart(void) {

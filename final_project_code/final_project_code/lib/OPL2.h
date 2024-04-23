@@ -67,10 +67,14 @@ byte getChannelVolume(byte channel);
 void setChannelVolume(byte channel, byte volume);
 void setKeyOn(byte channel, int keyOn);
 
+byte getAttack(byte channel, byte operatorNum);
+void setAttack(byte channel, byte operatorNum, byte attack);
 byte getDecay(byte channel, byte operatorNum);
 void setDecay(byte channel, byte operatorNum, byte decay);
 byte getWaveForm(byte channel, byte operatorNum);
 void setWaveForm(byte channel, byte operatorNum, byte waveForm);
+byte getFeedback(byte channel);
+void setFeedback(byte channel, byte feedback);
 
 
 #endif /* OPL2_H_ */
