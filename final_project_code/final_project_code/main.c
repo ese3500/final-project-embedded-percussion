@@ -176,6 +176,7 @@ void init(void) {
 }
 
 void nextStep(void) {
+    next_step = 0;
     // play all the notes for this step
     PORTD |= (1<<PORTD2);
     PORTD |= (1<<PORTD3);
@@ -190,7 +191,6 @@ void nextStep(void) {
     }
     GPIO_setLED(step == 0 ? 15 : step - 1, step == 0 ? steps[current_channel][15] : steps[current_channel][step - 1], 0);
     GPIO_setLED(step, 1, 1);
-    next_step = 0;
     step = (step + 1) % 16;
 }
 
