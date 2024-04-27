@@ -1,5 +1,10 @@
 # ESE3500 Final Project: OPL2 Drum Machine
 
+## Video
+
+just a placeholder for now\
+{% include youtube.html id="iLOzhloqFKE" %}
+
 ## Images
 
 ||||
