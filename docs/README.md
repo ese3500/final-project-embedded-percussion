@@ -2,15 +2,9 @@
 
 ## Images
 
-![front view](images/front.jpg)
-![top view](images/top.jpg)
-![back view](images/back.jpg)
-![side1 view](images/side1.jpg)
-![side2 view](images/side2.jpg)
-![corner1 view](images/corner1.jpg)
-![corner2 view](images/corner2.jpg)
-![corner3 view](images/corner3.jpg)
-![corner4 view](images/corner4.jpg)
-![powered on view](images/powered_on.jpg)
-![screen and opl view](images/screen_opl.jpg)
-![screen view](images/screen.jpg)
+||||
+|-|-|-|
+| ![front view](images/front.jpg) | ![top view](images/top.jpg) | ![back view](images/back.jpg) |
+| ![side1 view](images/side1.jpg) | ![side2 view](images/side2.jpg) | ![corner1 view](images/corner1.jpg) |
+| ![corner2 view](images/corner2.jpg) | ![corner3 view](images/corner3.jpg) | ![corner4 view](images/corner4.jpg) |
+| ![powered on view](images/powered_on.jpg) | ![screen view](images/screen.jpg) | |

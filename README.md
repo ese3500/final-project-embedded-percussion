@@ -5,8 +5,8 @@
     * Team Name: Embedded Percussion
     * Team Members: Mia McMahill, Madison Hughes
     * Github Repository URL: https://github.com/ese3500/final-project-embedded-percussion
-    * Github Pages Website URL: [for final submission]
-    * Description of hardware: (embedded hardware, laptop, etc) 
+    * Github Pages Website URL: https://ese3500.github.io/final-project-embedded-percussion/
+    * Description of hardware: Laptops (Win 10, Win 11), ATmega328PB Xplained Mini, Adafruit AW9523 GPIO Expanders, OPL2 Audio Board, Adafruit I2C Rotary Encoder Board
 
 ## Final Project Proposal
 
@@ -74,12 +74,12 @@ OPL2 - Operator Type L 2, another name for the YM3812
 
 #### Functionality
 
-HRS 01 - ATmega328PB will be the main microcontroller for this design
-HRS 02 - An adafruit GPIO expander to expand the amount of available pins/registers we have access to
-HRS 03 - 16 pushbuttons to represent different notes in a measure
-HRS 04 - 6 more pushbuttons to represent types of drums
-HRS 05 - 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting
-HRS 06 - OPL2 Audio Board using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing
+HRS 01 - ATmega328PB will be the main microcontroller for this design\
+HRS 02 - An adafruit GPIO expander to expand the amount of available pins/registers we have access to\
+HRS 03 - 16 pushbuttons to represent different notes in a measure\
+HRS 04 - 6 more pushbuttons to represent types of drums\
+HRS 05 - 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting\
+HRS 06 - OPL2 Audio Board using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing\
 HRS 07 - A rotary encoder for controlling the screen menus and the volume
 
 ### 6. MVP Demo
@@ -162,11 +162,11 @@ If you’ve never made a Github pages website before, you can follow this webpag
 
 ### 1. Video
 
-[Insert final project video here]
+On [YouTube](https://youtu.be/iLOzhloqFKE) (placeholder til recording final video)
 
 ### 2. Images
 
-[Insert final project images here]
+On [Github Pages](https://ese3500.github.io/final-project-embedded-percussion/)
 
 ### 3. Results
 
