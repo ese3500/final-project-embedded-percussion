@@ -1,8 +1,13 @@
 # ESE3500 Final Project: OPL2 Drum Machine
 
+\
+
 ## Video
 
 {% include youtube.html id="S4be1K6JF78" %}
+\
+\
+\
 
 ## Final Project Images
 
@@ -14,3 +19,20 @@
 | ![powered on view](images/powered_on.jpg) | ![screen view](images/screen.jpg) | |
 
 ## Progress Photos
+
+## Results
+
+## Specifications Results
+
+### SRS
+
+### HRS
+
+## Conclusion
+
+## References
+
+Adapted the Arduino OPL2 library to bare metal C:\
+<https://github.com/DhrBaksteen/ArduinoOPL2>\
+Referenced Adafruit Seesaw library when implementing the encoder functionality:\
+<https://github.com/adafruit/Adafruit_Seesaw/tree/master>

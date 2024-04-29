@@ -188,6 +188,11 @@ Reflect on your project. Some questions to consider: What did you learn from it?
 
 Fill in your references here as you work on your proposal and final submission. Describe any libraries used here.
 
+Adapted the Arduino OPL2 library to bare metal C:\
+<https://github.com/DhrBaksteen/ArduinoOPL2>\
+Referenced Adafruit Seesaw library when implementing the encoder functionality:\
+<https://github.com/adafruit/Adafruit_Seesaw/tree/master>
+
 ## Github Repo Submission Resources
 
 You can remove this section if you don't need these references.
