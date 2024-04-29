@@ -74,13 +74,13 @@ OPL2 - Operator Type L 2, another name for the YM3812
 
 #### Functionality
 
-HRS 01 - ATmega328PB will be the main microcontroller for this design\
-HRS 02 - An adafruit GPIO expander to expand the amount of available pins/registers we have access to\
-HRS 03 - 16 pushbuttons to represent different notes in a measure\
-HRS 04 - 6 more pushbuttons to represent types of drums\
-HRS 05 - 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting\
-HRS 06 - OPL2 Audio Board using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing\
-HRS 07 - A rotary encoder for controlling the screen menus and the volume
+HRS 01 &mdash; ATmega328PB will be the main microcontroller for this design\
+HRS 02 &mdash; An adafruit GPIO expander to expand the amount of available pins/registers we have access to\
+HRS 03 &mdash; 16 pushbuttons to represent different notes in a measure\
+HRS 04 &mdash; 6 more pushbuttons to represent types of drums\
+HRS 05 &mdash; 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting\
+HRS 06 &mdash; OPL2 Audio Board using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing\
+HRS 07 &mdash; A rotary encoder for controlling the screen menus and the volume
 
 ### 6. MVP Demo
 
@@ -176,9 +176,39 @@ What were your results? Namely, what was the final solution/design to your probl
 
 Based on your quantified system performance, comment on how you achieved or fell short of your expected software requirements. You should be quantifying this, using measurement tools to collect data.
 
+<span style="color:lightgreen">SRS 01</span> &mdash; When no channel is selected, users shall be able to use an on-screen menu to set a tempo in a range of 60-300 BPM.
+
+<span style="color:lightgreen">SRS 02</span> &mdash; The software shall use a PWM timer with a frequency of $`\lfloor\frac{16000000}{2*128*(tempo * 4 / 60)}\rfloor`$. A pin shall be driven high or low in accordance with this pulse signal.
+
+<span style="color:lightgreen">SRS 03</span> &mdash; When the sequencer is running, for each step, for each channel for which that step is active, a sound corresponding to the channel shall be played by the YM3812.
+
+<span style="color:lightgreen">SRS 04</span> &mdash; Users shall be able to start or stop the sequencer at any time. Playback shall always start from the first step whenever the sequencer is started.
+
+<span style="color:lightgreen">SRS 05</span> &mdash; Users shall be able to change the current instrument channel as well as set the active steps for that channel at any time.
+
+<span style="color:lightgreen">SRS 06</span> &mdash; Using an on-screen menu, users shall be able to modify the tuning and volume of the current instrument channel.
+
+Our final design meets all software requirements.
+
 #### 3.2 Hardware Requirements Specification (HRS) Results
 
 Based on your quantified system performance, comment on how you achieved or fell short of your expected hardware requirements. You should be quantifying this, using measurement tools to collect data.
+
+<span style="color:lightgreen">HRS 01</span> &mdash; ATmega328PB will be the main microcontroller for this design
+
+<span style="color:lightgreen">HRS 02</span> &mdash; An adafruit GPIO expander to expand the amount of available pins/registers we have access to
+
+<span style="color:lightgreen">HRS 03</span> &mdash; 16 pushbuttons to represent different notes in a measure
+
+<span style="color:lightgreen">HRS 04</span> &mdash; 6 more pushbuttons to represent types of drums
+
+<span style="color:lightgreen">HRS 05</span> &mdash; 1.8” 128x160 TFT LCD module to display the tempo, volume and the current drum setting
+
+<span style="color:lightgreen">HRS 06</span> &mdash; OPL2 Audio Board using a Yamaha YM3812 sound chip with SPI interfacing for audio synthesizing
+
+<span style="color:lightgreen">HRS 07</span> &mdash; A rotary encoder for controlling the screen menus and the volume
+
+Our final design meets all hardware requirements.
 
 ### 4. Conclusion
 
