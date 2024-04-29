@@ -19,6 +19,8 @@
 
 ## Results
 
+Our final design was what we had envisioned from the start. It is a laser-cut acrylic enclosure containing the electronics, with 23 buttons, a rotary encoder, a screen, sync jack, and the OPL2 accessible from the top panel. 16 of the buttons have integrated LEDs to display information about the drum pattern and playback, while the other 7 are unlit. It allows for the creation and playback of 6 channel, 16-step drum sequences, with the ability to modify 4 per channel settings, as well as global tempo control.
+
 ## Specifications Results
 
 ### SRS
@@ -35,7 +37,7 @@
 
 <span style="color:lightgreen">SRS 06</span> &mdash; Using an on-screen menu, users shall be able to modify the tuning and volume of the current instrument channel.
 
-Our final design meets all software requirements. Our requirements changed slightly over time due to the timing needs of the serial interfaces and the sequencer. SRS02 was updated accordingly.
+Our final design meets all software requirements. Our requirements changed slightly over time due to the timing needs of the serial interfaces and the sequencer. SRS02 was updated accordingly. Additionally, we made it possible to modify tempo at all times, rather than only when no instrument channel is selected (it is also not possible to not have one selected), slightly differing from SRS01.
 
 Testing the majority of the requirements were tested just by using the device, as whether or not they are met is easily perceived without measurement tools.
 
