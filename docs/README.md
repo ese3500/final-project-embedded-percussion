@@ -35,7 +35,12 @@
 
 <span style="color:lightgreen">SRS 06</span> &mdash; Using an on-screen menu, users shall be able to modify the tuning and volume of the current instrument channel.
 
-Our final design meets all software requirements.
+Our final design meets all software requirements. Our requirements changed slightly over time due to the timing needs of the serial interfaces and the sequencer. SRS02 was updated accordingly.
+
+Testing the majority of the requirements were tested just by using the device, as whether or not they are met is easily perceived without measurement tools.
+
+The frequency of the signal on the sync port was measured using an oscilloscope to test SRS02.
+![scope](images/scope_srs02.jpg)
 
 ### HRS
 
@@ -53,7 +58,7 @@ Our final design meets all software requirements.
 
 <span style="color:lightgreen">HRS 07</span> &mdash; A rotary encoder for controlling the screen menus and the volume
 
-Our final design meets all hardware requirements.
+Our final design meets all hardware requirements. No changes were made to our hardware requirements over the course of the project.
 
 ## Conclusion
 

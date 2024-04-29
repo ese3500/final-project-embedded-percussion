@@ -178,7 +178,7 @@ Based on your quantified system performance, comment on how you achieved or fell
 
 <span style="color:lightgreen">SRS 01</span> &mdash; When no channel is selected, users shall be able to use an on-screen menu to set a tempo in a range of 60-300 BPM.
 
-<span style="color:lightgreen">SRS 02</span> &mdash; The software shall use a PWM timer with a frequency of $`\lfloor\frac{16000000}{2*128*(tempo * 4 / 60)}\rfloor`$. A pin shall be driven high or low in accordance with this pulse signal.
+<span style="color:lightgreen">SRS 02</span> &mdash; The software shall use a PWM timer with a frequency of $`\lfloor\frac{8000000}{2*64*(tempo * 4 / 60)}\rfloor`$. A pin shall be driven high or low in accordance with this pulse signal.
 
 <span style="color:lightgreen">SRS 03</span> &mdash; When the sequencer is running, for each step, for each channel for which that step is active, a sound corresponding to the channel shall be played by the YM3812.
 
@@ -188,7 +188,12 @@ Based on your quantified system performance, comment on how you achieved or fell
 
 <span style="color:lightgreen">SRS 06</span> &mdash; Using an on-screen menu, users shall be able to modify the tuning and volume of the current instrument channel.
 
-Our final design meets all software requirements.
+Our final design meets all software requirements. Our requirements changed slightly over time due to the timing needs of the serial interfaces and the sequencer. SRS02 was updated accordingly.
+
+Testing the majority of the requirements were tested just by using the device, as whether or not they are met is easily perceived without measurement tools.
+
+The frequency of the signal on the sync port was measured using an oscilloscope to test SRS02.
+![scope](docs/images/scope_srs02.jpg)
 
 #### 3.2 Hardware Requirements Specification (HRS) Results
 
@@ -208,7 +213,7 @@ Based on your quantified system performance, comment on how you achieved or fell
 
 <span style="color:lightgreen">HRS 07</span> &mdash; A rotary encoder for controlling the screen menus and the volume
 
-Our final design meets all hardware requirements.
+Our final design meets all hardware requirements. No changes were made to our hardware requirements over the course of the project.
 
 ### 4. Conclusion
 
