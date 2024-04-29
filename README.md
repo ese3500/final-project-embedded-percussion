@@ -221,6 +221,10 @@ Our final design meets all hardware requirements. No changes were made to our ha
 
 Reflect on your project. Some questions to consider: What did you learn from it? What went well? What accomplishments are you proud of? What did you learn/gain from this experience? Did you have to change your approach? What could have been done differently? Did you encounter obstacles that you didn’t anticipate? What could be a next step for this project?
 
+<b>Mia:</b>
+
+<b>Madison:</b>
+
 ## References
 
 Fill in your references here as you work on your proposal and final submission. Describe any libraries used here.

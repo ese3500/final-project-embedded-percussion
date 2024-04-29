@@ -64,6 +64,10 @@ Our final design meets all hardware requirements. No changes were made to our ha
 
 ## Conclusion
 
+<b>Mia:</b>
+
+<b>Madison:</b>
+
 ## References
 
 Adapted the Arduino OPL2 library to bare metal C:\
