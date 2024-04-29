@@ -1,3 +1,4 @@
+{% include head.html %}
 # Final Report
 
 ## Video
@@ -23,13 +24,9 @@
 
 ### SRS
 
-<script type="text/javascript" id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
-
 <span style="color:lightgreen">SRS 01</span> &mdash; When no channel is selected, users shall be able to use an on-screen menu to set a tempo in a range of 60-300 BPM.
 
-<span style="color:lightgreen">SRS 02</span> &mdash; The software shall use a PWM timer with a frequency of $`\lfloor\frac{16000000}{2*128*(tempo * 4 / 60)}\rfloor`$. A pin shall be driven high or low in accordance with this pulse signal.
+<span style="color:lightgreen">SRS 02</span> &mdash; The software shall use a PWM timer with a frequency of $\lfloor\frac{16000000}{2*128*(tempo * 4 / 60)}\rfloor$. A pin shall be driven high or low in accordance with this pulse signal.
 
 <span style="color:lightgreen">SRS 03</span> &mdash; When the sequencer is running, for each step, for each channel for which that step is active, a sound corresponding to the channel shall be played by the YM3812.
 

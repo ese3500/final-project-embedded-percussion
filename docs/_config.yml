@@ -1,5 +1,6 @@
 title: OPL2 Drum Machine
 description: "ESE3500 Final Project - Team: Embedded Percussion"
 remote_theme: pages-themes/midnight@v0.2.0
+math_engine: mathjax
 plugins:
 - jekyll-remote-theme # add this line to the plugins list if you already have one
