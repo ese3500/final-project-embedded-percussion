@@ -1,3 +1,6 @@
+---
+layout: default
+---
 # Final Report
 
 ## Video
@@ -22,10 +25,6 @@
 ## Specifications Results
 
 ### SRS
-
-<script type="text/javascript" id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-</script>
 
 <span style="color:lightgreen">SRS 01</span> &mdash; When no channel is selected, users shall be able to use an on-screen menu to set a tempo in a range of 60-300 BPM.
 
