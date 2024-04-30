@@ -16,6 +16,11 @@
 | ![powered on view](images/powered_on.jpg) | ![screen view](images/screen.jpg) | |
 
 ## Progress Photos
+||||
+|-|-|-|
+| ![na](images/IMG_1400.jpg) | | ![na](images/IMG_1621.jpg) | 
+| ![na](images/IMG_1679.jpg) | | ![na](images/IMG_1686.jpg) |
+| ![na](images/IMG_1702.jpg) | | ![na](images/IMG_1893.jpg) |
 
 ## Results
 
