@@ -64,7 +64,7 @@ Our final design meets all hardware requirements. No changes were made to our ha
 
 ## Conclusion
 
-<b>Mia:</b>
+<b>Mia:</b> I think the primary think I learned is the importance of spare components. We had one of our GPIO expanders, and many of the LEDs in our buttons, break, and we were saved by the parts being ordered twice by the Detkin staff. When our encoder broke, and we had to wait after putting in a new order, it delayed getting that aspect finished until a few days before the final demo. Other than some issues with broken components, just about everything went well. In my opinion, we achieved exactly what we set out to do, with the final device having all planned features and functioning very reliably. One unexpected (well, somewhat expected) issue was that the slowness of drawing characters to the LCD necessitated a minor change to the design of the GUI. Instead of changing it entirely for the tempo selection, I added the tempo to be displayed on the per-instrument screens, and removed the global settings screen. This was a simple change though that didn't affect anything else. With the fact that everything works so reliably and the number wires are becoming unmanageable, I think a good next step (that I plan on taking) would be to design a PCB to make the hardware more compact and easy to manage.
 
 <b>Madison:</b>
 
