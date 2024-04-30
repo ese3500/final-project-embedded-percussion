@@ -16,6 +16,7 @@
 | ![powered on view](images/powered_on.jpg) | ![screen view](images/screen.jpg) | |
 
 ## Progress Photos
+
 ||||
 |-|-|-|
 | ![FIRST](images/IMG_1400.JPG) | ![SECOND](images/IMG_1621.JPG) | ![THIRD](images/IMG_1679.JPG) |
