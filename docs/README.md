@@ -1,4 +1,4 @@
-# Final Report
+ # Final Report
 
 ## Video
 
@@ -18,8 +18,9 @@
 ## Progress Photos
 ||||
 |-|-|-|
-| ![FIRST](images/IMG_1400.JPG) | ![SECOND](images/IMG_1621.JPG) | ![THIRD](images/IMG_1679.JPG) |
-| ![FOURTH](images/IMG_1686.JPG) | ![FIFTH](images/IMG_1702.JPG) | ![SIXTH](images/IMG_1893.JPG) |
+|![FIRST](images/IMG_1400.JPG)|![SECOND](images/IMG_1621.JPG)|![THIRD](images/IMG_1679.JPG)|
+|![FOURTH](images/IMG_1686.JPG)|![FIFTH](images/IMG_1702.JPG)|![SIXTH](images/IMG_1893.JPG) 
+|
 
 ## Results
 
